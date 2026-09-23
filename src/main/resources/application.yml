@@ -1,0 +1,107 @@
+# ============================================================
+#  Zenfi API - configuracion
+#  Estructura basada en la plantilla gestortecno del profesor.
+#  Las credenciales NO van aqui: se leen del archivo .env
+#  (ver .env.example en la raiz del proyecto).
+# ============================================================
+
+quarkus:
+  application:
+    name: Zenfi API
+    version: 1.0.0-SNAPSHOT
+
+  # ---------------- HTTP ----------------
+  http:
+    port: 8862
+    # 0.0.0.0 permite conectarse desde el emulador (10.0.2.2)
+    # y tambien desde un celular fisico en la misma red.
+    host: 0.0.0.0
+    # Todas las rutas quedan bajo /zenfi  ->  http://localhost:8862/zenfi/deudas
+    root-path: /zenfi
+    # CORS: solo lo necesita Flutter Web (Chrome). En Android no aplica.
+    # Se configura solo aqui; no se usa un CorsFilter adicional.
+    cors:
+      enabled: true
+      origins: "/.*/"
+      methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+      headers: Content-Type,Authorization,Accept,X-Requested-With
+
+  # ---------------- Base de datos ----------------
+  datasource:
+    db-kind: postgresql
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    jdbc:
+      url: ${DB_URL}
+      max-size: 16
+
+  # ---------------- Hibernate ----------------
+  hibernate-orm:
+    schema-management:
+      # drop-and-create (plantilla del profesor): borra y recrea las tablas
+      # en cada arranque. Para conservar los datos entre reinicios, poner
+      # DB_ESQUEMA=update en el archivo .env.
+      strategy: ${DB_ESQUEMA:drop-and-create}
+    log:
+      sql: true
+      format-sql: true
+
+  # ---------------- Logs ----------------
+  log:
+    level: INFO
+    console:
+      enabled: true
+      format: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] (%t) %s%e%n"
+    file:
+      enabled: true
+      path: logs/zenfi-api.log
+      format: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] (%t) %s%e%n"
+      rotation:
+        max-file-size: 5M      # Tamano maximo de cada archivo
+        max-backup-index: 5    # Archivos que se conservan
+        file-suffix: yyyy-MM-dd
+
+  # ---------------- OpenAPI / Swagger ----------------
+  # Swagger UI: http://localhost:8862/zenfi/q/swagger-ui
+  swagger-ui:
+    always-include: true
+    title: Zenfi API
+  smallrye-openapi:
+    info-title: Zenfi - API de Educacion Financiera
+    info-version: 1.0.0
+    info-description: Backend en Quarkus de la app Zenfi (Flutter)
+    info-contact-name: Equipo Zenfi - Universidad Central
+
+# ============================================================
+#  Perfil %dev (quarkus:dev)
+# ============================================================
+"%dev":
+  quarkus:
+    log:
+      category:
+        "edu.ucentral.zenfi":
+          level: DEBUG
+
+# ============================================================
+#  Perfil %test
+#  Los tests usan H2 en memoria: no tocan PostgreSQL, no
+#  necesitan el archivo .env ni Docker.
+# ============================================================
+"%test":
+  quarkus:
+    datasource:
+      db-kind: h2
+      username: sa
+      # No dejar vacio: un valor vacio cuenta como "no definido" y Quarkus
+      # intentaria leer DB_PASSWORD del .env. H2 acepta cualquier clave.
+      password: zenfi_test
+      jdbc:
+        url: jdbc:h2:mem:zenfi_test;DB_CLOSE_DELAY=-1
+    hibernate-orm:
+      schema-management:
+        strategy: drop-and-create
+      log:
+        sql: false
+    log:
+      file:
+        enabled: false

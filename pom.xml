@@ -15,6 +15,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.39.4</quarkus.platform.version>
+        <lombok.version>1.18.48</lombok.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
     </properties>
@@ -47,19 +48,64 @@
             <artifactId>quarkus-rest</artifactId>
         </dependency>
 
+        <!-- Conversión automática entre objetos Java y JSON -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-jackson</artifactId>
+        </dependency>
 
+        <!-- Configuración en application.yml (como la plantilla gestortecno) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-config-yaml</artifactId>
+        </dependency>
 
         <!-- ============ Persistencia ============ -->
 
+        <!-- ORM Hibernate con la simplificación de Panache -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+        </dependency>
 
+        <!-- Driver de PostgreSQL (base de datos real) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
 
+        <!-- Driver de H2 en memoria: SOLO se usa en el perfil %test.
+             Permite ejecutar los tests sin tocar la base de datos real
+             y sin necesidad de Docker. -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-h2</artifactId>
+        </dependency>
 
         <!-- ============ Validación y documentación ============ -->
 
+        <!-- Bean Validation: @NotBlank, @DecimalMin, @Valid... -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-validator</artifactId>
+        </dependency>
 
+        <!-- OpenAPI + Swagger UI en /q/swagger-ui -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-openapi</artifactId>
+        </dependency>
 
         <!-- ============ Utilidades ============ -->
 
+        <!-- Lombok: getters, setters y builder en ResponseApi / ResponseApiError.
+             Los DTOs siguen siendo records de Java. -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- ============ Pruebas ============ -->
 
@@ -69,6 +115,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Mockito integrado con Quarkus: @InjectMock -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit-mockito</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Pruebas de endpoints REST -->
         <dependency>
@@ -92,6 +144,15 @@
                 <version>${compiler-plugin.version}</version>
                 <configuration>
                     <parameters>true</parameters>
+                    <!-- Desde Java 23 el compilador ya no ejecuta procesadores de
+                         anotaciones automaticamente: hay que declarar Lombok aqui. -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>

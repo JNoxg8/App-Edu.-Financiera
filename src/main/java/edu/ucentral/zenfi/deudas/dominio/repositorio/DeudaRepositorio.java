@@ -26,5 +26,7 @@ public interface DeudaRepositorio {
 
     void agregarAbono(Long deudaId, Abono abono);
 
+    void eliminarAbono(Long deudaId, Long abonoId);
+
     boolean eliminar(Long id);
 }

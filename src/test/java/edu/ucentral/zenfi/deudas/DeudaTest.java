@@ -1,5 +1,6 @@
 package edu.ucentral.zenfi.deudas;
 
+import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
 import edu.ucentral.zenfi.deudas.dominio.modelo.Abono;
 import edu.ucentral.zenfi.deudas.dominio.modelo.Deuda;
@@ -175,6 +176,27 @@ class DeudaTest {
         assertEquals(3, pagada.getNumeroCuotas());
         assertTrue(pagada.estaPagada());
         assertEquals(new BigDecimal("0.00"), pagada.saldoPendiente());
+    }
+
+    @Test
+    @DisplayName("Quitar un abono sube de nuevo el saldo pendiente")
+    void quitarAbono() {
+        Deuda deuda = new Deuda(1L, "Banco", new BigDecimal("100000"),
+                BigDecimal.ZERO, 1, LocalDate.now().plusYears(1), 1L,
+                List.of(new Abono(7L, new BigDecimal("40000"), LocalDate.now())));
+
+        deuda.quitarAbono(7L);
+
+        assertEquals(new BigDecimal("0.00"), deuda.totalAbonado());
+        assertEquals(new BigDecimal("100000.00"), deuda.saldoPendiente());
+    }
+
+    @Test
+    @DisplayName("Quitar un abono que no es de la deuda lanza 404")
+    void quitarAbonoInexistente() {
+        Deuda deuda = deudaSinInteres("100000", 1);
+
+        assertThrows(RecursoNoEncontradoException.class, () -> deuda.quitarAbono(99L));
     }
 
 }

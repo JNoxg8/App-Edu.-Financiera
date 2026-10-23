@@ -253,4 +253,37 @@ class DeudaRecursoTest {
                 .statusCode(404)
                 .body("error.codigo", is("REC-404"));
     }
+
+    @Test
+    @DisplayName("DELETE /deudas/{id}/abonos/{abonoId} devuelve el saldo")
+    void eliminarAbono() {
+        String id = crearDeuda("Banco Quitar Abono", "600000", "0.00", 6);
+
+        String abonoId = given()
+                .contentType(ContentType.JSON)
+                .body("""
+                        { "monto": 100000 }
+                        """)
+                .when()
+                .post("/deudas/" + id + "/abonos")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("abonos[0].id")
+                .toString();
+
+        given()
+                .when()
+                .delete("/deudas/" + id + "/abonos/" + abonoId)
+                .then()
+                .statusCode(200)
+                .body("abonos.size()", is(0))
+                .body("saldoPendiente", comparesEqualTo(new BigDecimal("600000.00")));
+
+        given()
+                .when()
+                .delete("/deudas/" + id + "/abonos/" + abonoId)
+                .then()
+                .statusCode(404);
+    }
 }

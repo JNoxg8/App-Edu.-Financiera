@@ -90,6 +90,17 @@ public class DeudaPanache implements DeudaRepositorio, PanacheRepository<DeudaEn
 
     @Override
     @Transactional
+    public void eliminarAbono(Long deudaId, Long abonoId) {
+        DeudaEntity deuda = findById(deudaId);
+        if (deuda == null) {
+            return;
+        }
+        // orphanRemoval = true: sacarlo de la lista lo borra de la tabla
+        deuda.abonos.removeIf(a -> a.id.equals(abonoId));
+    }
+
+    @Override
+    @Transactional
     public boolean eliminar(Long id) {
         return deleteById(id);
     }

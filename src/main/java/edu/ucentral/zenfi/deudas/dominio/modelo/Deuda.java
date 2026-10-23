@@ -1,5 +1,6 @@
 package edu.ucentral.zenfi.deudas.dominio.modelo;
 
+import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
 
 import java.math.BigDecimal;
@@ -187,6 +188,20 @@ public class Deuda {
                     "El abono excede el saldo pendiente, que es " + saldoPendiente());
         }
         abonos.add(abono);
+    }
+
+    /**
+     * Quita un abono (por ejemplo, porque se registro por error).
+     * El saldo pendiente vuelve a subir solo, porque se recalcula.
+     */
+    public Abono quitarAbono(Long abonoId) {
+        Abono abono = abonos.stream()
+                .filter(a -> a.getId() != null && a.getId().equals(abonoId))
+                .findFirst()
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "La deuda " + id + " no tiene un abono con id " + abonoId));
+        abonos.remove(abono);
+        return abono;
     }
 
     /**

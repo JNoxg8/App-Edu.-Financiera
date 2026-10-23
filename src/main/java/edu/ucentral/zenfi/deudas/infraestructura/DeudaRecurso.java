@@ -110,6 +110,19 @@ public class DeudaRecurso {
         return DeudaRespuestaDto.desde(actualizada);
     }
 
+    @DELETE
+    @Path("/{id}/abonos/{abonoId}")
+    @Operation(
+            summary = "Eliminar un abono",
+            description = "El saldo pendiente vuelve a subir y el gasto asociado "
+                    + "en movimientos (HU009) tambien se elimina")
+    @APIResponse(responseCode = "200", description = "Abono eliminado")
+    @APIResponse(responseCode = "404", description = "La deuda o el abono no existen")
+    public DeudaRespuestaDto eliminarAbono(@PathParam("id") Long id,
+                                           @PathParam("abonoId") Long abonoId) {
+        return DeudaRespuestaDto.desde(servicio.eliminarAbono(id, abonoId));
+    }
+
     @PUT
     @Path("/{id}")
     @Operation(

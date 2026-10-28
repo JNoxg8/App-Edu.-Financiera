@@ -12,7 +12,8 @@ quarkus:
 
   # ---------------- HTTP ----------------
   http:
-    port: 8862
+    # Render asigna el puerto en la variable PORT; en local se usa 8862.
+    port: ${PORT:8862}
     # 0.0.0.0 permite conectarse desde el emulador (10.0.2.2)
     # y tambien desde un celular fisico en la misma red.
     host: 0.0.0.0

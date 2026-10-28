@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
+import java.util.Optional;
 
 /**
  * Capa de aplicacion de HU011: coordina los casos de uso.
@@ -46,9 +47,17 @@ public class PresupuestoServicio {
         return guardado.estado(gastos.totalGastos(usuarioId, mes));
     }
 
+    /**
+     * Presupuesto del mes, si se definio. El reporte mensual (HU025) lo usa
+     * asi porque alli un mes sin presupuesto no es un error.
+     */
+    public Optional<Presupuesto> buscar(Long usuarioId, YearMonth mes) {
+        return repositorio.buscarPorMes(usuarioId, mes);
+    }
+
     /** Busca el presupuesto del mes o lanza 404 si no se ha definido. */
     public Presupuesto obtener(Long usuarioId, YearMonth mes) {
-        return repositorio.buscarPorMes(usuarioId, mes)
+        return buscar(usuarioId, mes)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No hay un presupuesto definido para " + mes));
     }

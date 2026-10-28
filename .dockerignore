@@ -3,3 +3,6 @@
 !target/*-runner.jar
 !target/lib/*
 !target/quarkus-app/*
+# Dockerfile de la raiz (Render): compila desde el codigo fuente
+!pom.xml
+!src/main

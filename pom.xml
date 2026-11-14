@@ -42,6 +42,12 @@
             <artifactId>quarkus-arc</artifactId>
         </dependency>
 
+        <!-- Tareas programadas para recordatorios automáticos -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-scheduler</artifactId>
+        </dependency>
+
         <!-- Endpoints REST (JAX-RS) -->
         <dependency>
             <groupId>io.quarkus</groupId>

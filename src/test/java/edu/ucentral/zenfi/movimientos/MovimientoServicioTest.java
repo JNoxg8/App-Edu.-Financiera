@@ -2,6 +2,7 @@ package edu.ucentral.zenfi.movimientos;
 
 import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
+import edu.ucentral.zenfi.movimientos.dominio.modelo.CategoriaPredefinida;
 import edu.ucentral.zenfi.movimientos.aplicacion.CategoriaServicio;
 import edu.ucentral.zenfi.movimientos.aplicacion.MovimientoServicio;
 import edu.ucentral.zenfi.movimientos.dominio.modelo.Categoria;
@@ -164,16 +165,18 @@ class MovimientoServicioTest {
     }
 
     @Test
-    @DisplayName("No permite eliminar una categoria con movimientos")
+    @DisplayName("Al eliminar una categoria en uso, sus movimientos pasan a Otros (HU019)")
     void eliminarCategoriaEnUso() {
         Categoria mascotas = new Categoria(10L, "Mascotas", TipoMovimiento.GASTO, false, 1L);
+        Categoria otros = new Categoria(9L, "Otros", TipoMovimiento.GASTO, true, null);
         Mockito.when(categorias.buscarPorId(10L)).thenReturn(Optional.of(mascotas));
-        Mockito.when(repositorio.contarPorCategoria(10L)).thenReturn(3L);
+        Mockito.when(categorias.buscarPredefinida(CategoriaPredefinida.OTROS_GASTOS))
+                .thenReturn(Optional.of(otros));
+        Mockito.when(repositorio.reasignarCategoria(10L, 9L)).thenReturn(3);
 
-        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class,
-                () -> categoriaServicio.eliminar(1L, 10L));
+        assertEquals(3, categoriaServicio.eliminar(1L, 10L));
 
-        assertEquals(true, ex.getMessage().contains("3 movimiento"));
-        verify(categorias, never()).eliminar(eq(10L));
+        verify(repositorio).reasignarCategoria(10L, 9L);
+        verify(categorias).eliminar(10L);
     }
 }

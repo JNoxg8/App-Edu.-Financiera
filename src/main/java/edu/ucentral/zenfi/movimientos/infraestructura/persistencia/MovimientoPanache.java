@@ -96,8 +96,10 @@ public class MovimientoPanache implements MovimientoRepositorio, PanacheReposito
     }
 
     @Override
-    public long contarPorCategoria(Long categoriaId) {
-        return count("categoria.id", categoriaId);
+    @Transactional
+    public int reasignarCategoria(Long categoriaOrigenId, Long categoriaDestinoId) {
+        return update("categoria = ?1 where categoria.id = ?2",
+                categorias.findById(categoriaDestinoId), categoriaOrigenId);
     }
 
     @Override

@@ -113,6 +113,29 @@ class CategoriaRecursoTest {
     }
 
     @Test
+    @DisplayName("Al eliminar una categoria en uso, sus movimientos pasan a Otros (HU019)")
+    void eliminarEnUsoReasignaAOtros() {
+        String id = crear("Plantas", "GASTO");
+        String movimientoId = given()
+                .contentType(ContentType.JSON)
+                .body("""
+                        { "tipo": "GASTO", "monto": 45000, "fecha": "%s",
+                          "descripcion": "Concentrado", "categoriaId": %s }
+                        """.formatted(java.time.LocalDate.now(), id))
+                .when().post("/movimientos")
+                .then().statusCode(201)
+                .extract().path("id").toString();
+
+        given().when().delete("/categorias/" + id).then().statusCode(204);
+
+        given().when().get("/movimientos/" + movimientoId)
+                .then().statusCode(200)
+                .body("categoria.nombre", is("Otros"))
+                .body("categoria.predefinida", is(true))
+                .body("categoria.tipo", is("GASTO"));
+    }
+
+    @Test
     @DisplayName("Una categoria predefinida no se puede eliminar (409)")
     void predefinidaNoSeElimina() {
         String id = given().when().get("/categorias?tipo=GASTO")

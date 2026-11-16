@@ -180,17 +180,23 @@ class MovimientoRecursoTest {
                 .when().post("/categorias")
                 .then().statusCode(201).extract().path("id").toString();
 
-        given()
+        String movimientoId = given()
                 .contentType(ContentType.JSON)
                 .body(json("INGRESO", "350000", HOY, "Logo para cliente", id, null))
                 .when()
                 .post("/movimientos")
                 .then()
                 .statusCode(201)
-                .body("categoria.nombre", is("Freelance"));
+                .body("categoria.nombre", is("Freelance"))
+                .extract().path("id").toString();
 
-        // Con movimientos ya no se puede borrar la categoria
-        given().when().delete("/categorias/" + id).then().statusCode(409);
+        // HU019: se puede borrar aunque tenga movimientos; pasan a "Otros" de ingresos
+        given().when().delete("/categorias/" + id).then().statusCode(204);
+
+        given().when().get("/movimientos/" + movimientoId)
+                .then().statusCode(200)
+                .body("categoria.nombre", is("Otros"))
+                .body("categoria.tipo", is("INGRESO"));
     }
 
     // ------------------------------------------------------------------

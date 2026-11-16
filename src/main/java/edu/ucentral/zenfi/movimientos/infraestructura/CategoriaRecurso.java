@@ -91,10 +91,10 @@ public class CategoriaRecurso {
     @DELETE
     @Path("/{id}")
     @Operation(summary = "Eliminar una categoria personalizada",
-            description = "Solo si no tiene movimientos asociados")
+            description = "HU019: sus movimientos pasan a la categoria predefinida Otros")
     @APIResponse(responseCode = "204", description = "Categoria eliminada")
     @APIResponse(responseCode = "404", description = "La categoria no existe")
-    @APIResponse(responseCode = "409", description = "Es predefinida o tiene movimientos")
+    @APIResponse(responseCode = "409", description = "Es predefinida")
     public Response eliminar(@PathParam("id") Long id) {
         servicio.eliminar(USUARIO_ACTUAL, id);
         return Response.noContent().build();

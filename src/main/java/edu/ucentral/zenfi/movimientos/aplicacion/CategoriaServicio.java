@@ -63,21 +63,25 @@ public class CategoriaServicio {
     }
 
     /**
-     * Solo se borran categorias personalizadas y sin movimientos: borrar
-     * una en uso dejaria esos ingresos o gastos sin categoria.
+     * HU019: solo se borran categorias personalizadas. Sus movimientos pasan
+     * a la predefinida "Otros" del mismo tipo, asi ninguno queda sin
+     * categoria. Devuelve cuantos movimientos se reasignaron.
      */
     @Transactional
-    public void eliminar(Long usuarioId, Long id) {
+    public int eliminar(Long usuarioId, Long id) {
         Categoria categoria = obtener(usuarioId, id);
         categoria.verificarEditable();
 
-        long enUso = movimientos.contarPorCategoria(id);
-        if (enUso > 0) {
-            throw new ReglaNegocioException(
-                    "La categoria '" + categoria.getNombre() + "' tiene " + enUso
-                            + " movimiento(s). Cambielos de categoria antes de eliminarla");
-        }
+        CategoriaPredefinida otros = categoria.getTipo() == TipoMovimiento.GASTO
+                ? CategoriaPredefinida.OTROS_GASTOS
+                : CategoriaPredefinida.OTROS_INGRESOS;
+        Categoria destino = repositorio.buscarPredefinida(otros)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No se encontro la categoria predefinida Otros"));
+
+        int reasignados = movimientos.reasignarCategoria(id, destino.getId());
         repositorio.eliminar(id);
+        return reasignados;
     }
 
     /**

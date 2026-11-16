@@ -23,7 +23,8 @@ public interface MovimientoRepositorio {
     /** Filtra, busca y ordena segun el filtro. */
     List<Movimiento> listar(FiltroMovimientos filtro);
 
-    long contarPorCategoria(Long categoriaId);
+    /** Pasa todos los movimientos de una categoria a otra. Devuelve cuantos cambio. */
+    int reasignarCategoria(Long categoriaOrigenId, Long categoriaDestinoId);
 
     boolean eliminar(Long id);
 

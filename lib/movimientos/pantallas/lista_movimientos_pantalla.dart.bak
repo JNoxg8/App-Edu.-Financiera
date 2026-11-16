@@ -1,0 +1,674 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../../comun/cambios_financieros.dart';
+import '../../comun/moneda.dart';
+import '../modelo/movimiento.dart';
+import '../servicio/movimiento_servicio.dart';
+import 'categorias_pantalla.dart';
+import 'formulario_movimiento_pantalla.dart';
+
+final _formatoFecha = DateFormat('dd/MM/yyyy');
+
+/// Periodo que se consulta. Se usan nombres de mes propios para no
+/// depender de initializeDateFormatting('es').
+enum _Periodo {
+  esteMes('Este mes'),
+  mesAnterior('Mes anterior'),
+  todo('Todo');
+
+  final String nombre;
+
+  const _Periodo(this.nombre);
+
+  DateTime? get desde {
+    final hoy = DateTime.now();
+    return switch (this) {
+      _Periodo.esteMes => DateTime(hoy.year, hoy.month, 1),
+      _Periodo.mesAnterior => DateTime(hoy.year, hoy.month - 1, 1),
+      _Periodo.todo => null,
+    };
+  }
+
+  DateTime? get hasta {
+    final hoy = DateTime.now();
+    return switch (this) {
+      _Periodo.esteMes => hoy,
+      // Dia 0 del mes actual = ultimo dia del mes anterior
+      _Periodo.mesAnterior => DateTime(hoy.year, hoy.month, 0),
+      _Periodo.todo => null,
+    };
+  }
+}
+
+/// HU009: ingresos y gastos del usuario.
+///
+/// Permite filtrar por tipo, categoria y periodo; buscar por texto;
+/// ordenar por fecha, monto o categoria; y crear, editar y borrar.
+/// Arriba muestra el resumen del periodo ("en que uso mi dinero").
+class ListaMovimientosPantalla extends StatefulWidget {
+  final Moneda moneda;
+
+  const ListaMovimientosPantalla({super.key, this.moneda = Moneda.cop});
+
+  @override
+  State<ListaMovimientosPantalla> createState() =>
+      _ListaMovimientosPantallaState();
+}
+
+class _ListaMovimientosPantallaState extends State<ListaMovimientosPantalla> {
+  final _servicio = MovimientoServicio();
+  final _buscar = TextEditingController();
+  Timer? _esperaBusqueda;
+
+  // Filtros
+  _Periodo _periodo = _Periodo.esteMes;
+  TipoMovimiento? _tipo;
+  Categoria? _categoria;
+  OrdenMovimientos _orden = OrdenMovimientos.fecha;
+  bool _ascendente = false;
+
+  List<Categoria> _categorias = [];
+  late Future<(List<Movimiento>, ResumenMovimientos)> _futuro;
+
+  NumberFormat get _formato => widget.moneda.formato;
+
+  @override
+  void initState() {
+    super.initState();
+    _futuro = _consultar();
+    _cargarCategorias();
+    // Un abono hecho en la pestana Deudas tambien es un gasto aqui
+    CambiosFinancieros.escuchar.addListener(_recargar);
+  }
+
+  @override
+  void dispose() {
+    CambiosFinancieros.escuchar.removeListener(_recargar);
+    _esperaBusqueda?.cancel();
+    _buscar.dispose();
+    super.dispose();
+  }
+
+  Future<(List<Movimiento>, ResumenMovimientos)> _consultar() async {
+    final resultados = await Future.wait([
+      _servicio.listar(
+        tipo: _tipo,
+        categoriaId: _categoria?.id,
+        buscar: _buscar.text,
+        desde: _periodo.desde,
+        hasta: _periodo.hasta,
+        orden: _orden,
+        ascendente: _ascendente,
+      ),
+      _servicio.resumen(desde: _periodo.desde, hasta: _periodo.hasta),
+    ]);
+    return (
+      resultados[0] as List<Movimiento>,
+      resultados[1] as ResumenMovimientos,
+    );
+  }
+
+  Future<void> _cargarCategorias() async {
+    try {
+      final lista = await _servicio.listarCategorias();
+      if (mounted) setState(() => _categorias = lista);
+    } catch (_) {
+      // El filtro de categoria simplemente queda vacio
+    }
+  }
+
+  void _recargar() {
+    if (!mounted) return;
+    setState(() {
+      _futuro = _consultar();
+    });
+  }
+
+  /// Espera a que el usuario deje de escribir para no llamar al
+  /// backend en cada letra.
+  void _alEscribir(String _) {
+    _esperaBusqueda?.cancel();
+    _esperaBusqueda = Timer(const Duration(milliseconds: 400), _recargar);
+    setState(() {}); // muestra u oculta el boton de limpiar
+  }
+
+  void _mostrarMensaje(String texto, {bool error = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(texto),
+      backgroundColor: error ? Colors.red.shade700 : Colors.green.shade700,
+    ));
+  }
+
+  // ------------------------------------------------------------------
+  // Acciones
+  // ------------------------------------------------------------------
+
+  Future<void> _abrirFormulario({Movimiento? movimiento}) async {
+    final guardado = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FormularioMovimientoPantalla(
+          movimiento: movimiento,
+          moneda: widget.moneda,
+          tipoInicial: _tipo ?? TipoMovimiento.gasto,
+        ),
+      ),
+    );
+    if (guardado == true) {
+      // Criterio HU009: notificar que se guardo correctamente
+      _mostrarMensaje(movimiento == null
+          ? 'Movimiento guardado correctamente'
+          : 'Movimiento actualizado');
+      _cargarCategorias(); // pudo haberse creado una categoria nueva
+      // Avisa a Deudas (si fue un abono) y recarga esta lista
+      CambiosFinancieros.notificar();
+    }
+  }
+
+  Future<void> _abrirCategorias() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CategoriasPantalla()),
+    );
+    await _cargarCategorias();
+    // Si la categoria filtrada se borro o se renombro, se refresca
+    if (_categoria != null && !_categorias.contains(_categoria)) {
+      _categoria = null;
+    } else if (_categoria != null) {
+      _categoria = _categorias.firstWhere((c) => c == _categoria);
+    }
+    _recargar();
+  }
+
+  Future<void> _eliminar(Movimiento m) async {
+    final confirma = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar movimiento'),
+        content: Text(m.abonoDeuda
+            ? 'Este gasto es un abono a una deuda. Al eliminarlo, el abono '
+                'también se elimina y el saldo de la deuda vuelve a subir.'
+            : 'Se eliminará el ${m.tipo.nombre.toLowerCase()} de '
+                '${_formato.format(m.monto)}.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirma != true) return;
+
+    bool exito = false;
+    try {
+      await _servicio.eliminar(m.id);
+      exito = true;
+    } on ApiException catch (e) {
+      _mostrarMensaje(e.mensaje, error: true);
+    } catch (_) {
+      _mostrarMensaje('No se pudo eliminar el movimiento', error: true);
+    }
+
+    if (exito) {
+      _mostrarMensaje('Movimiento eliminado');
+      CambiosFinancieros.notificar();
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // UI
+  // ------------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mis movimientos'),
+        actions: [
+          IconButton(
+            onPressed: _abrirCategorias,
+            icon: const Icon(Icons.category_outlined),
+            tooltip: 'Categorías',
+          ),
+          IconButton(
+            onPressed: _recargar,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Recargar',
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _abrirFormulario,
+        icon: const Icon(Icons.add),
+        label: const Text('Nuevo movimiento'),
+      ),
+      body: Column(
+        children: [
+          _barraFiltros(context),
+          Expanded(
+            child: FutureBuilder<(List<Movimiento>, ResumenMovimientos)>(
+              future: _futuro,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return _EstadoVacio(
+                    icono: Icons.cloud_off,
+                    titulo: 'No se pudo conectar',
+                    mensaje: 'Verifica que Quarkus este corriendo.\n\n'
+                        '${snapshot.error}',
+                    accion: FilledButton.icon(
+                      onPressed: _recargar,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reintentar'),
+                    ),
+                  );
+                }
+
+                final (movimientos, resumen) = snapshot.data!;
+
+                return RefreshIndicator(
+                  onRefresh: () async => _recargar(),
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: 88, top: 4),
+                    children: [
+                      _TarjetaResumen(
+                        resumen: resumen,
+                        formato: _formato,
+                        periodo: _periodo.nombre,
+                      ),
+                      if (movimientos.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 24),
+                          child: _EstadoVacio(
+                            icono: Icons.receipt_long_outlined,
+                            titulo: 'Sin movimientos',
+                            mensaje: 'No hay movimientos con estos filtros.\n'
+                                'Presiona "Nuevo movimiento" para registrar uno.',
+                          ),
+                        )
+                      else
+                        for (final m in movimientos)
+                          _TarjetaMovimiento(
+                            movimiento: m,
+                            formato: _formato,
+                            onEditar: () => _abrirFormulario(movimiento: m),
+                            onEliminar: () => _eliminar(m),
+                          ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _barraFiltros(BuildContext context) {
+    final categoriasDelTipo = _tipo == null
+        ? _categorias
+        : _categorias.where((c) => c.tipo == _tipo).toList();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: Column(
+        children: [
+          // ---------- Buscar ----------
+          TextField(
+            controller: _buscar,
+            onChanged: _alEscribir,
+            decoration: InputDecoration(
+              hintText: 'Buscar por descripción o categoría',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _buscar.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      tooltip: 'Limpiar',
+                      onPressed: () {
+                        _buscar.clear();
+                        _alEscribir('');
+                      },
+                    ),
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // ---------- Filtros y orden ----------
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                // Periodo
+                PopupMenuButton<_Periodo>(
+                  initialValue: _periodo,
+                  onSelected: (p) {
+                    _periodo = p;
+                    _recargar();
+                  },
+                  itemBuilder: (_) => _Periodo.values
+                      .map((p) => PopupMenuItem(value: p, child: Text(p.nombre)))
+                      .toList(),
+                  child: Chip(
+                    avatar: const Icon(Icons.calendar_month_outlined, size: 18),
+                    label: Text(_periodo.nombre),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Tipo
+                for (final t in [null, ...TipoMovimiento.values]) ...[
+                  ChoiceChip(
+                    label: Text(t == null ? 'Todos' : '${t.nombre}s'),
+                    selected: _tipo == t,
+                    onSelected: (_) {
+                      _tipo = t;
+                      // La categoria filtrada debe ser del tipo elegido
+                      if (t != null && _categoria?.tipo != t) _categoria = null;
+                      _recargar();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                // Categoria
+                PopupMenuButton<int>(
+                  onSelected: (id) {
+                    _categoria = id == -1
+                        ? null
+                        : _categorias.firstWhere((c) => c.id == id);
+                    _recargar();
+                  },
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(value: -1, child: Text('Todas')),
+                    ...categoriasDelTipo.map((c) => PopupMenuItem(
+                          value: c.id,
+                          child: Text(_tipo == null
+                              ? '${c.nombre} (${c.tipo.nombre.toLowerCase()})'
+                              : c.nombre),
+                        )),
+                  ],
+                  child: Chip(
+                    avatar: const Icon(Icons.category_outlined, size: 18),
+                    label: Text(_categoria?.nombre ?? 'Categoría'),
+                    onDeleted: _categoria == null
+                        ? null
+                        : () {
+                            _categoria = null;
+                            _recargar();
+                          },
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Orden
+                PopupMenuButton<OrdenMovimientos>(
+                  initialValue: _orden,
+                  tooltip: 'Ordenar',
+                  onSelected: (o) {
+                    _orden = o;
+                    _recargar();
+                  },
+                  itemBuilder: (_) => OrdenMovimientos.values
+                      .map((o) => PopupMenuItem(value: o, child: Text(o.nombre)))
+                      .toList(),
+                  child: Chip(
+                    avatar: const Icon(Icons.sort, size: 18),
+                    label: Text(_orden.nombre),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    _ascendente = !_ascendente;
+                    _recargar();
+                  },
+                  icon: Icon(
+                      _ascendente ? Icons.arrow_upward : Icons.arrow_downward),
+                  tooltip: _ascendente ? 'Ascendente' : 'Descendente',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------------------------
+// Widgets
+// ----------------------------------------------------------------------
+
+/// Resumen del periodo: cuanto entro, cuanto salio y en que se gasto.
+class _TarjetaResumen extends StatelessWidget {
+  final ResumenMovimientos resumen;
+  final NumberFormat formato;
+  final String periodo;
+
+  const _TarjetaResumen({
+    required this.resumen,
+    required this.formato,
+    required this.periodo,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    final positivo = resumen.balance >= 0;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Balance · $periodo',
+              style: tema.textTheme.labelMedium
+                  ?.copyWith(color: tema.colorScheme.outline),
+            ),
+            Text(
+              formato.format(resumen.balance),
+              style: tema.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: positivo ? tema.colorScheme.primary : Colors.red.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 20,
+              runSpacing: 10,
+              children: [
+                _Dato('Ingresos', formato.format(resumen.totalIngresos),
+                    color: Colors.green.shade700),
+                _Dato('Gastos', formato.format(resumen.totalGastos),
+                    color: Colors.red.shade700),
+                _Dato('Gastado',
+                    '${resumen.porcentajeGastado.toStringAsFixed(1)}% de lo ingresado'),
+              ],
+            ),
+            if (resumen.gastosPorCategoria.isNotEmpty) ...[
+              const Divider(height: 24),
+              Text('¿En qué se fue tu dinero?',
+                  style: tema.textTheme.titleSmall),
+              const SizedBox(height: 8),
+              // Las 4 categorias con mas gasto
+              for (final t in resumen.gastosPorCategoria.take(4))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: Text(t.categoria)),
+                          Text(
+                            '${formato.format(t.total)} · '
+                            '${t.porcentaje.toStringAsFixed(1)}%',
+                            style: tema.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: (t.porcentaje / 100).clamp(0.0, 1.0),
+                          minHeight: 8,
+                          backgroundColor:
+                              tema.colorScheme.surfaceContainerHighest,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TarjetaMovimiento extends StatelessWidget {
+  final Movimiento movimiento;
+  final NumberFormat formato;
+  final VoidCallback onEditar;
+  final VoidCallback onEliminar;
+
+  const _TarjetaMovimiento({
+    required this.movimiento,
+    required this.formato,
+    required this.onEditar,
+    required this.onEliminar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    final m = movimiento;
+    final color = m.esIngreso ? Colors.green.shade700 : Colors.red.shade700;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: ListTile(
+        onTap: onEditar,
+        leading: CircleAvatar(
+          backgroundColor: tema.colorScheme.primaryContainer,
+          child: Icon(
+            m.abonoDeuda
+                ? Icons.account_balance_outlined
+                : (m.esIngreso ? Icons.arrow_downward : Icons.arrow_upward),
+            color: tema.colorScheme.onPrimaryContainer,
+          ),
+        ),
+        title: Text(
+          m.descripcion ?? m.categoria.nombre,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${m.categoria.nombre} · ${_formatoFecha.format(m.fecha)}',
+          style: tema.textTheme.bodySmall,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${m.esIngreso ? '+' : '-'} ${formato.format(m.monto)}',
+              style: tema.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.bold, color: color),
+            ),
+            IconButton(
+              onPressed: onEliminar,
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Eliminar',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Dato extends StatelessWidget {
+  final String etiqueta;
+  final String valor;
+  final Color? color;
+
+  const _Dato(this.etiqueta, this.valor, {this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          etiqueta,
+          style: tema.textTheme.labelSmall
+              ?.copyWith(color: tema.colorScheme.outline),
+        ),
+        Text(
+          valor,
+          style: tema.textTheme.bodyMedium
+              ?.copyWith(fontWeight: FontWeight.w600, color: color),
+        ),
+      ],
+    );
+  }
+}
+
+class _EstadoVacio extends StatelessWidget {
+  final IconData icono;
+  final String titulo;
+  final String mensaje;
+  final Widget? accion;
+
+  const _EstadoVacio({
+    required this.icono,
+    required this.titulo,
+    required this.mensaje,
+    this.accion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icono, size: 64, color: Theme.of(context).colorScheme.outline),
+            const SizedBox(height: 16),
+            Text(titulo, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(mensaje, textAlign: TextAlign.center),
+            if (accion != null) ...[const SizedBox(height: 24), accion!],
+          ],
+        ),
+      ),
+    );
+  }
+}

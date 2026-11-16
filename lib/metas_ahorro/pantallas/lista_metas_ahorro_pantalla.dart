@@ -7,6 +7,7 @@ import '../servicio/meta_ahorro_servicio.dart';
 import 'formulario_meta_ahorro_pantalla.dart';
 import 'detalle_meta_ahorro_pantalla.dart';
 import '../../comun/menu_lateral.dart';
+import '../../comun/tema.dart';
 
 class ListaMetasAhorroPantalla extends StatefulWidget {
   final MetaAhorroServicio? servicio;
@@ -106,7 +107,7 @@ class _ListaMetasAhorroPantallaState extends State<ListaMetasAhorroPantalla> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: ColoresZenfi.negativo),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Eliminar'),
           ),
@@ -192,7 +193,7 @@ class _ListaMetasAhorroPantallaState extends State<ListaMetasAhorroPantalla> {
                 children: [
                   TextButton.icon(
                     onPressed: () => _eliminarMeta(meta),
-                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    style: TextButton.styleFrom(foregroundColor: ColoresZenfi.negativo),
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('Eliminar'),
                   ),

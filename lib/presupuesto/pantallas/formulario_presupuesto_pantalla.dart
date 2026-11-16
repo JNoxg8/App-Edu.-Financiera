@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../comun/moneda.dart';
 import '../modelo/mes.dart';
 import '../servicio/presupuesto_servicio.dart';
+import '../../comun/tema.dart';
 
 /// RQ-11: formulario para definir el presupuesto de un mes.
 ///
@@ -64,7 +65,7 @@ class _FormularioPresupuestoPantallaState
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(texto),
-      backgroundColor: Colors.red.shade700,
+      backgroundColor: ColoresZenfi.negativo,
     ));
   }
 

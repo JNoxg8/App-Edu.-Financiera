@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../modelo/deuda.dart';
 import '../servicio/deuda_servicio.dart';
+import '../../comun/tema.dart';
 
 /// RQ-07 (crear) y RQ-22 (editar).
 ///
@@ -111,14 +112,14 @@ class _FormularioDeudaPantallaState extends State<FormularioDeudaPantalla> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(e.toString()),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: ColoresZenfi.negativo,
         ));
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('No se pudo conectar con el servidor'),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: ColoresZenfi.negativo,
         ));
       }
     } finally {

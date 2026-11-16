@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'tema.dart';
+
 /// Un modulo de la app tal como aparece en el menu lateral.
 class ModuloMenu {
   final String titulo;
@@ -46,16 +48,23 @@ class MenuLateral extends StatelessWidget {
         onSeleccionar(i);
       },
       children: [
-        // Encabezado: nombre de la app y saludo al usuario
-        Padding(
-          padding: const EdgeInsets.fromLTRB(28, 24, 16, 16),
+        // Encabezado azul: nombre de la app y saludo al usuario
+        Container(
+          padding: const EdgeInsets.fromLTRB(24, 32, 16, 20),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [ColoresZenfi.azulMarino, ColoresZenfi.azulProfundo],
+            ),
+          ),
           child: Row(
             children: [
-              CircleAvatar(
+              const CircleAvatar(
                 radius: 24,
-                backgroundColor: tema.colorScheme.primaryContainer,
-                child: Icon(Icons.savings,
-                    color: tema.colorScheme.onPrimaryContainer),
+                backgroundColor: ColoresZenfi.petroleo,
+                child: Icon(Icons.savings, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -63,25 +72,28 @@ class MenuLateral extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Zenfi',
-                        style: tema.textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
+                        style: tema.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold, color: Colors.white)),
                     Text('Hola, $nombreUsuario',
                         overflow: TextOverflow.ellipsis,
                         style: tema.textTheme.bodyMedium
-                            ?.copyWith(color: tema.colorScheme.outline)),
+                            ?.copyWith(color: const Color(0xFFC9D6E6))),
                   ],
                 ),
               ),
             ],
           ),
         ),
-        const Divider(indent: 28, endIndent: 28),
         for (var i = 0; i < modulos.length; i++) ...[
           // Titulo de seccion cuando empieza un grupo nuevo
           if (i == 0 || modulos[i].grupo != modulos[i - 1].grupo)
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 16, 16, 8),
-              child: Text(modulos[i].grupo, style: tema.textTheme.titleSmall),
+              child: Text(modulos[i].grupo.toUpperCase(),
+                  style: tema.textTheme.labelMedium?.copyWith(
+                      color: ColoresZenfi.textoSecundario,
+                      letterSpacing: 1.1,
+                      fontWeight: FontWeight.w600)),
             ),
           NavigationDrawerDestination(
             icon: Icon(modulos[i].icono),

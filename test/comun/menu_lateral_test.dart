@@ -54,7 +54,7 @@ void main() {
     expect(find.text('Movimientos'), findsOneWidget);
     expect(find.text('Deudas'), findsOneWidget);
     // Un titulo por seccion, no uno por modulo
-    expect(find.text('Mis finanzas'), findsOneWidget);
+    expect(find.text('MIS FINANZAS'), findsOneWidget);
   });
 
   testWidgets('elegir un modulo avisa su posicion y cierra el menu',

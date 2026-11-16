@@ -10,6 +10,7 @@ import '../servicio/movimiento_servicio.dart';
 import 'categorias_pantalla.dart';
 import 'formulario_movimiento_pantalla.dart';
 import '../../comun/menu_lateral.dart';
+import '../../comun/tema.dart';
 
 final _formatoFecha = DateFormat('dd/MM/yyyy');
 
@@ -200,7 +201,7 @@ class _ListaMovimientosPantallaState extends State<ListaMovimientosPantalla> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(texto),
-        backgroundColor: error ? Colors.red.shade700 : Colors.green.shade700,
+        backgroundColor: error ? ColoresZenfi.negativo : ColoresZenfi.positivo,
       ),
     );
   }
@@ -267,7 +268,7 @@ class _ListaMovimientosPantallaState extends State<ListaMovimientosPantalla> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: ColoresZenfi.negativo),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Eliminar'),
           ),
@@ -589,7 +590,7 @@ class _TarjetaResumen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: positivo
                     ? tema.colorScheme.primary
-                    : Colors.red.shade700,
+                    : ColoresZenfi.negativo,
               ),
             ),
             const SizedBox(height: 8),
@@ -600,12 +601,12 @@ class _TarjetaResumen extends StatelessWidget {
                 _Dato(
                   'Ingresos',
                   formato.format(resumen.totalIngresos),
-                  color: Colors.green.shade700,
+                  color: ColoresZenfi.positivo,
                 ),
                 _Dato(
                   'Gastos',
                   formato.format(resumen.totalGastos),
-                  color: Colors.red.shade700,
+                  color: ColoresZenfi.negativo,
                 ),
                 _Dato(
                   'Gastado',
@@ -675,7 +676,7 @@ class _TarjetaMovimiento extends StatelessWidget {
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
     final m = movimiento;
-    final color = m.esIngreso ? Colors.green.shade700 : Colors.red.shade700;
+    final color = m.esIngreso ? ColoresZenfi.positivo : ColoresZenfi.negativo;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

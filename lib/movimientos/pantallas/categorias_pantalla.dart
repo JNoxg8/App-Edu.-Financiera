@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../comun/cambios_financieros.dart';
 import '../modelo/movimiento.dart';
 import '../servicio/movimiento_servicio.dart';
+import '../../comun/tema.dart';
 
 /// HU009: categorias de ingresos y gastos.
 ///
@@ -38,7 +39,7 @@ class _CategoriasPantallaState extends State<CategoriasPantalla> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(texto),
-      backgroundColor: error ? Colors.red.shade700 : Colors.green.shade700,
+      backgroundColor: error ? ColoresZenfi.negativo : ColoresZenfi.positivo,
     ));
   }
 
@@ -133,7 +134,7 @@ class _CategoriasPantallaState extends State<CategoriasPantalla> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: ColoresZenfi.negativo),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Eliminar'),
           ),

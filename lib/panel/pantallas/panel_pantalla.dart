@@ -7,6 +7,7 @@ import '../../presupuesto/modelo/mes.dart';
 import '../modelo/panel_principal.dart';
 import '../servicio/panel_servicio.dart';
 import '../../comun/menu_lateral.dart';
+import '../../comun/tema.dart';
 
 final _formatoFecha = DateFormat('dd/MM/yyyy');
 
@@ -18,14 +19,17 @@ final _formatoFecha = DateFormat('dd/MM/yyyy');
 class PanelPantalla extends StatefulWidget {
   final Moneda moneda;
 
-  const PanelPantalla({super.key, this.moneda = Moneda.cop});
+  /// Se puede inyectar para las pruebas (con un MockClient adentro).
+  final PanelServicio? servicio;
+
+  const PanelPantalla({super.key, this.moneda = Moneda.cop, this.servicio});
 
   @override
   State<PanelPantalla> createState() => _PanelPantallaState();
 }
 
 class _PanelPantallaState extends State<PanelPantalla> {
-  final _servicio = PanelServicio();
+  late final PanelServicio _servicio = widget.servicio ?? PanelServicio();
   late Future<PanelPrincipal> _futuro;
 
   NumberFormat get _formato => widget.moneda.formato;
@@ -139,9 +143,22 @@ class _Seccion extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icono, size: 20, color: tema.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(titulo, style: tema.textTheme.titleMedium),
+                // Icono en un circulo de color: identifica la seccion de un vistazo
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: tema.colorScheme.secondaryContainer,
+                  child: Icon(icono,
+                      size: 18, color: tema.colorScheme.secondary),
+                ),
+                const SizedBox(width: 10),
+                // Expanded + ellipsis: en pantallas angostas el titulo se
+                // recorta en vez de salirse de la tarjeta
+                Expanded(
+                  child: Text(titulo,
+                      overflow: TextOverflow.ellipsis,
+                      style: tema.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -190,29 +207,64 @@ class _Balance extends StatelessWidget {
     }
 
     final negativo = panel.balanceGeneral < 0;
-    final color = negativo ? Colors.red.shade700 : Colors.green.shade700;
+    // Sobre el fondo azul se usan las versiones claras del verde y el rojo
+    final color = negativo
+        ? ColoresZenfi.negativoSobreOscuro
+        : ColoresZenfi.positivoSobreOscuro;
+    const textoClaro = Color(0xFFC9D6E6);
 
-    return _Seccion(
-      icono: Icons.account_balance,
-      titulo: 'Balance general',
-      contenido: Column(
+    // Tarjeta destacada: el balance es el dato principal del panel
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [ColoresZenfi.azulMarino, ColoresZenfi.azulProfundo],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: ColoresZenfi.azulProfundo.withValues(alpha: 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              const Icon(Icons.account_balance, size: 18, color: textoClaro),
+              const SizedBox(width: 8),
+              Text('Balance general',
+                  style: tema.textTheme.titleSmall?.copyWith(color: textoClaro)),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text(
             formato.format(panel.balanceGeneral),
-            style: tema.textTheme.headlineSmall
+            style: tema.textTheme.headlineMedium
                 ?.copyWith(fontWeight: FontWeight.bold, color: color),
           ),
           if (negativo)
             Text('Has gastado más de lo que has recibido.',
                 style: TextStyle(color: color)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 24,
-            runSpacing: 8,
+          const SizedBox(height: 14),
+          Row(
             children: [
-              _Dato('Ingresos', formato.format(panel.totalIngresos)),
-              _Dato('Gastos', formato.format(panel.totalGastos)),
+              Expanded(
+                child: _Dato('Ingresos', formato.format(panel.totalIngresos),
+                    icono: Icons.arrow_downward,
+                    color: ColoresZenfi.positivoSobreOscuro),
+              ),
+              Expanded(
+                child: _Dato('Gastos', formato.format(panel.totalGastos),
+                    icono: Icons.arrow_upward,
+                    color: ColoresZenfi.negativoSobreOscuro),
+              ),
             ],
           ),
         ],
@@ -237,10 +289,8 @@ class _GastosDelMes extends StatelessWidget {
           ? _SinDatos('No hay gastos registrados en $mes.')
           : Text(
               formato.format(panel.gastosMesActual),
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold, color: ColoresZenfi.negativo),
             ),
     );
   }
@@ -275,8 +325,9 @@ class _Metas extends StatelessWidget {
                                 child: Text(m.nombre,
                                     style: tema.textTheme.bodyLarge)),
                             Text('${m.porcentaje.toStringAsFixed(0)} %',
-                                style: tema.textTheme.bodyLarge
-                                    ?.copyWith(fontWeight: FontWeight.w600)),
+                                style: tema.textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: tema.colorScheme.secondary)),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -332,8 +383,9 @@ class _Deudas extends StatelessWidget {
                     ),
                     trailing: Text(
                       formato.format(d.saldoPendiente),
-                      style: tema.textTheme.bodyLarge
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: tema.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: ColoresZenfi.negativo),
                     ),
                   ),
               ],
@@ -342,25 +394,38 @@ class _Deudas extends StatelessWidget {
   }
 }
 
+/// Ingresos o gastos dentro de la tarjeta azul del balance.
 class _Dato extends StatelessWidget {
   final String etiqueta;
   final String valor;
+  final IconData icono;
+  final Color color;
 
-  const _Dato(this.etiqueta, this.valor);
+  const _Dato(this.etiqueta, this.valor,
+      {required this.icono, required this.color});
 
   @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
-        Text(etiqueta,
-            style: tema.textTheme.labelSmall
-                ?.copyWith(color: tema.colorScheme.outline)),
-        Text(valor,
-            style: tema.textTheme.bodyLarge
-                ?.copyWith(fontWeight: FontWeight.w600)),
+        Icon(icono, size: 18, color: color),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(etiqueta,
+                  style: tema.textTheme.labelSmall
+                      ?.copyWith(color: const Color(0xFFC9D6E6))),
+              Text(valor,
+                  overflow: TextOverflow.ellipsis,
+                  style: tema.textTheme.bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.w600, color: color)),
+            ],
+          ),
+        ),
       ],
     );
   }

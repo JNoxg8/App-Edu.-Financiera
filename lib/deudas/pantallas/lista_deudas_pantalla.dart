@@ -6,6 +6,7 @@ import '../modelo/deuda.dart';
 import '../servicio/deuda_servicio.dart';
 import 'formulario_deuda_pantalla.dart';
 import '../../comun/menu_lateral.dart';
+import '../../comun/tema.dart';
 
 final formatoMoneda =
     NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
@@ -49,7 +50,7 @@ class _ListaDeudasPantallaState extends State<ListaDeudasPantalla> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(texto),
-      backgroundColor: error ? Colors.red.shade700 : Colors.green.shade700,
+      backgroundColor: error ? ColoresZenfi.negativo : ColoresZenfi.positivo,
     ));
   }
 
@@ -151,7 +152,7 @@ class _ListaDeudasPantallaState extends State<ListaDeudasPantalla> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: ColoresZenfi.negativo),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Eliminar'),
           ),
@@ -312,7 +313,7 @@ class _TarjetaDeuda extends StatelessWidget {
               style: tema.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: deuda.pagada
-                    ? Colors.green.shade700
+                    ? ColoresZenfi.positivo
                     : tema.colorScheme.primary,
               ),
             ),
@@ -393,7 +394,7 @@ class _Dato extends StatelessWidget {
           valor,
           style: tema.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: resaltado ? Colors.orange.shade800 : null,
+            color: resaltado ? ColoresZenfi.advertencia : null,
           ),
         ),
       ],

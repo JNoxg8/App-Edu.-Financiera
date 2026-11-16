@@ -9,6 +9,7 @@ import '../servicio/aporte_meta_ahorro_servicio.dart';
 import '../servicio/meta_ahorro_servicio.dart';
 import '../modelo/recordatorio_meta.dart';
 import '../servicio/recordatorio_meta_servicio.dart';
+import '../../comun/tema.dart';
 
 class DetalleMetaAhorroPantalla extends StatefulWidget {
   final MetaAhorro meta;
@@ -388,7 +389,7 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(backgroundColor: ColoresZenfi.negativo),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Eliminar'),
           ),

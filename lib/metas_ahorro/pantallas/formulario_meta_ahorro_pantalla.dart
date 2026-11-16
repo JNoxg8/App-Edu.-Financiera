@@ -5,6 +5,7 @@ import '../../comun/api_exception.dart';
 import '../../comun/cambios_financieros.dart';
 import '../modelo/meta_ahorro.dart';
 import '../servicio/meta_ahorro_servicio.dart';
+import '../../comun/tema.dart';
 
 /// Pantalla de creación de metas de ahorro (HU003).
 class FormularioMetaAhorroPantalla extends StatefulWidget {
@@ -66,7 +67,7 @@ class _FormularioMetaAhorroPantallaState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(texto),
-        backgroundColor: error ? Colors.red.shade700 : Colors.green.shade700,
+        backgroundColor: error ? ColoresZenfi.negativo : ColoresZenfi.positivo,
       ),
     );
   }

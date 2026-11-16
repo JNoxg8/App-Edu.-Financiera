@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'comun/tema.dart';
 import 'inicio/arranque_pantalla.dart';
 
 Future<void> main() async {
@@ -19,12 +20,7 @@ class FinanzasApp extends StatelessWidget {
     return MaterialApp(
       title: 'Zenfi',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00695C),
-        ),
-        useMaterial3: true,
-      ),
+      theme: temaZenfi(),
       home: const ArranquePantalla(),
     );
   }

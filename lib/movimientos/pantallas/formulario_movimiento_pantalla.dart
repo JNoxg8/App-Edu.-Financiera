@@ -6,6 +6,7 @@ import '../../deudas/modelo/deuda.dart';
 import '../../deudas/servicio/deuda_servicio.dart';
 import '../modelo/movimiento.dart';
 import '../servicio/movimiento_servicio.dart';
+import '../../comun/tema.dart';
 
 /// HU009: registrar (o editar) un ingreso o gasto.
 ///
@@ -85,7 +86,7 @@ class _FormularioMovimientoPantallaState
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(texto),
-      backgroundColor: Colors.red.shade700,
+      backgroundColor: ColoresZenfi.negativo,
     ));
   }
 
@@ -211,7 +212,7 @@ class _FormularioMovimientoPantallaState
       });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Categoría "${creada.nombre}" creada'),
-        backgroundColor: Colors.green.shade700,
+        backgroundColor: ColoresZenfi.positivo,
       ));
     } on ApiException catch (e) {
       // 409 si el nombre ya existe

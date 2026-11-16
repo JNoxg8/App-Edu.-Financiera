@@ -4,6 +4,7 @@ import '../../comun/api_exception.dart';
 import '../../comun/moneda.dart';
 import '../modelo/perfil.dart';
 import '../servicio/perfil_servicio.dart';
+import '../../comun/tema.dart';
 
 /// HU001: formulario de creacion de perfil.
 ///
@@ -41,7 +42,7 @@ class _CrearPerfilPantallaState extends State<CrearPerfilPantalla> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(texto),
-      backgroundColor: Colors.red.shade700,
+      backgroundColor: ColoresZenfi.negativo,
     ));
   }
 

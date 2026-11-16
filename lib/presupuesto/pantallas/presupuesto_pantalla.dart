@@ -10,6 +10,7 @@ import '../modelo/mes.dart';
 import '../modelo/presupuesto.dart';
 import 'formulario_presupuesto_pantalla.dart';
 import '../../comun/menu_lateral.dart';
+import '../../comun/tema.dart';
 
 /// HU011: presupuesto mensual con lo gastado y el porcentaje utilizado.
 /// HU025: debajo, el reporte del mes con los gastos por categoria.
@@ -76,7 +77,7 @@ class _PresupuestoPantallaState extends State<PresupuestoPantalla> {
     if (guardado == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Presupuesto guardado'),
-        backgroundColor: Colors.green.shade700,
+        backgroundColor: ColoresZenfi.positivo,
       ));
       _recargar();
     }
@@ -211,7 +212,7 @@ class _TarjetaPresupuesto extends StatelessWidget {
     final tema = Theme.of(context);
     final excedido = presupuesto.excedido;
     // HU011: si el gasto supera el limite, el porcentaje se muestra como advertencia
-    final color = excedido ? Colors.red.shade700 : tema.colorScheme.primary;
+    final color = excedido ? ColoresZenfi.negativo : tema.colorScheme.primary;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -264,13 +265,13 @@ class _TarjetaPresupuesto extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: ColoresZenfi.negativoFondo,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'Superaste tu presupuesto por '
                   '${formato.format(-presupuesto.disponible)}.',
-                  style: TextStyle(color: Colors.red.shade900),
+                  style: TextStyle(color: ColoresZenfi.negativoTexto),
                 ),
               ),
             ],
@@ -285,7 +286,7 @@ class _TarjetaPresupuesto extends StatelessWidget {
                 _Dato(
                   excedido ? 'Excedido por' : 'Disponible',
                   formato.format(presupuesto.disponible.abs()),
-                  color: excedido ? Colors.red.shade700 : Colors.green.shade700,
+                  color: excedido ? ColoresZenfi.negativo : ColoresZenfi.positivo,
                 ),
               ],
             ),

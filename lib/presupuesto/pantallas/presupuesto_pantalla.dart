@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../comun/cambios_financieros.dart';
+import '../../comun/graficos.dart';
 import '../../comun/moneda.dart';
 import '../../reporte/modelo/reporte_mensual.dart';
 import '../../reporte/servicio/reporte_servicio.dart';
@@ -211,8 +212,8 @@ class _TarjetaPresupuesto extends StatelessWidget {
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
     final excedido = presupuesto.excedido;
-    // HU011: si el gasto supera el limite, el porcentaje se muestra como advertencia
-    final color = excedido ? ColoresZenfi.negativo : tema.colorScheme.primary;
+    // HU011: el anillo pasa a ambar desde el 80 % y a rojo si se excede
+    final colores = coloresSeveridad(presupuesto.porcentajeUtilizado / 100);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -221,39 +222,64 @@ class _TarjetaPresupuesto extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Gastado en el mes',
-              style: tema.textTheme.labelMedium
-                  ?.copyWith(color: tema.colorScheme.outline),
-            ),
-            Text(
-              formato.format(presupuesto.totalGastado),
-              style: tema.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold, color: color),
-            ),
-            const SizedBox(height: 12),
-
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: presupuesto.progreso,
-                minHeight: 12,
-                color: color,
-                backgroundColor: tema.colorScheme.surfaceContainerHighest,
-              ),
-            ),
-            const SizedBox(height: 6),
             Row(
               children: [
-                if (excedido) ...[
-                  Icon(Icons.warning_amber_rounded, size: 18, color: color),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  '${presupuesto.porcentajeUtilizado.toStringAsFixed(1)}% utilizado',
-                  style: tema.textTheme.bodyMedium?.copyWith(
-                    color: color,
-                    fontWeight: excedido ? FontWeight.bold : null,
+                AnilloProgreso(
+                  fraccion: presupuesto.porcentajeUtilizado / 100,
+                  tamano: 120,
+                  grosor: 12,
+                  color: colores.relleno,
+                  colorPista: colores.pista,
+                  centro: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${presupuesto.porcentajeUtilizado.toStringAsFixed(1)} %',
+                        style: tema.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: excedido ? ColoresZenfi.negativo : null,
+                        ),
+                      ),
+                      Text('utilizado',
+                          style: tema.textTheme.labelSmall
+                              ?.copyWith(color: tema.colorScheme.outline)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Gastado en el mes',
+                        style: tema.textTheme.labelMedium
+                            ?.copyWith(color: tema.colorScheme.outline),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          formato.format(presupuesto.totalGastado),
+                          style: tema.textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (excedido)
+                        Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded,
+                                size: 18, color: ColoresZenfi.negativo),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text('Límite superado',
+                                  style: tema.textTheme.bodyMedium?.copyWith(
+                                      color: ColoresZenfi.negativo,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
                 ),
               ],

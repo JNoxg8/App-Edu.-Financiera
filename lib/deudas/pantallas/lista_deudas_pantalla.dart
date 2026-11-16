@@ -7,6 +7,7 @@ import '../servicio/deuda_servicio.dart';
 import 'formulario_deuda_pantalla.dart';
 import '../../comun/menu_lateral.dart';
 import '../../comun/tema.dart';
+import '../../comun/graficos.dart';
 
 final formatoMoneda =
     NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
@@ -302,37 +303,59 @@ class _TarjetaDeuda extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            // RQ-07: saldo pendiente actualizado automaticamente
-            Text(
-              'Saldo pendiente',
-              style: tema.textTheme.labelMedium
-                  ?.copyWith(color: tema.colorScheme.outline),
-            ),
-            Text(
-              formatoMoneda.format(deuda.saldoPendiente),
-              style: tema.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: deuda.pagada
-                    ? ColoresZenfi.positivo
-                    : tema.colorScheme.primary,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: deuda.progreso,
-                minHeight: 10,
-                backgroundColor: tema.colorScheme.surfaceContainerHighest,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${deuda.porcentajePagado.toStringAsFixed(1)}% pagado  -  '
-              'Abonado ${formatoMoneda.format(deuda.totalAbonado)}',
-              style: tema.textTheme.bodySmall,
+            Row(
+              children: [
+                // Anillo: que parte de la deuda ya se pago
+                AnilloProgreso(
+                  fraccion: deuda.progreso,
+                  tamano: 76,
+                  grosor: 8,
+                  color: deuda.pagada
+                      ? ColoresZenfi.positivo
+                      : ColoresZenfi.petroleo,
+                  colorPista: tema.colorScheme.surfaceContainerHighest,
+                  centro: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${deuda.porcentajePagado.toStringAsFixed(0)} %',
+                          style: tema.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('pagado', style: tema.textTheme.labelSmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // RQ-07: saldo pendiente actualizado automaticamente
+                      Text(
+                        'Saldo pendiente',
+                        style: tema.textTheme.labelMedium
+                            ?.copyWith(color: tema.colorScheme.outline),
+                      ),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          formatoMoneda.format(deuda.saldoPendiente),
+                          style: tema.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: deuda.pagada
+                                ? ColoresZenfi.positivo
+                                : ColoresZenfi.negativo,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Abonado ${formatoMoneda.format(deuda.totalAbonado)}',
+                        style: tema.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
 
             const Divider(height: 24),

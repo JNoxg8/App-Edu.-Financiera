@@ -8,6 +8,7 @@ import 'formulario_meta_ahorro_pantalla.dart';
 import 'detalle_meta_ahorro_pantalla.dart';
 import '../../comun/menu_lateral.dart';
 import '../../comun/tema.dart';
+import '../../comun/graficos.dart';
 
 class ListaMetasAhorroPantalla extends StatefulWidget {
   final MetaAhorroServicio? servicio;
@@ -174,12 +175,33 @@ class _ListaMetasAhorroPantallaState extends State<ListaMetasAhorroPantalla> {
               ],
             ),
             const SizedBox(height: 12),
-            Text('Acumulado: ${_moneda.format(meta.montoAcumulado)}'),
-            Text('Objetivo: ${_moneda.format(meta.montoObjetivo)}'),
-            const SizedBox(height: 10),
-            LinearProgressIndicator(value: progreso),
-            const SizedBox(height: 5),
-            Text('$porcentaje % completado'),
+            Row(
+              children: [
+                AnilloProgreso(
+                  fraccion: progreso,
+                  tamano: 76,
+                  grosor: 8,
+                  color: colorAvanceMeta(meta.estado),
+                  colorPista: tema.colorScheme.surfaceContainerHighest,
+                  centro: Text('$porcentaje %',
+                      style: tema.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Acumulado: ${_moneda.format(meta.montoAcumulado)}'),
+                      Text('Objetivo: ${_moneda.format(meta.montoObjetivo)}'),
+                      Text('$porcentaje % completado',
+                          style: tema.textTheme.bodySmall
+                              ?.copyWith(color: tema.colorScheme.outline)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             Text(
               'Fecha límite: ${DateFormat('dd/MM/yyyy').format(meta.fechaLimite)}',

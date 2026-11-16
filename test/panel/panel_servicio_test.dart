@@ -27,6 +27,19 @@ void main() {
               'totalGastos': 1000000.00,
               'tieneMovimientos': true,
               'gastosMesActual': 420000.50,
+              'gastosMesPorCategoria': [
+                {'categoria': 'Alimentación', 'total': 300000.50, 'porcentaje': 71.43},
+                {'categoria': 'Transporte', 'total': 120000.00, 'porcentaje': 28.57},
+              ],
+              'presupuesto': {
+                'id': 5,
+                'mes': '2026-11',
+                'montoLimite': 400000.00,
+                'totalGastado': 420000.50,
+                'porcentajeUtilizado': 105.00,
+                'disponible': -20000.50,
+                'excedido': true,
+              },
               'metasActivas': [
                 {
                   'id': 3,
@@ -61,6 +74,9 @@ void main() {
     expect(panel.metasActivas.single.fechaLimite, DateTime(2027, 3, 1));
     // Las tildes y la Ñ deben llegar bien: el cuerpo se decodifica como UTF-8
     expect(panel.deudasPendientes.single.acreedor, 'Banco Ñ');
+    expect(panel.gastosMesPorCategoria.first.categoria, 'Alimentación');
+    expect(panel.presupuesto!.excedido, isTrue);
+    expect(panel.presupuesto!.totalGastado, panel.gastosMesActual);
   });
 
   test('sin informacion llegan listas vacias y tieneMovimientos en false', () async {
@@ -85,6 +101,8 @@ void main() {
     expect(panel.tieneMovimientos, isFalse);
     expect(panel.metasActivas, isEmpty);
     expect(panel.deudasPendientes, isEmpty);
+    expect(panel.gastosMesPorCategoria, isEmpty);
+    expect(panel.presupuesto, isNull);
   });
 
   test('un error del servidor se convierte en ApiException', () async {

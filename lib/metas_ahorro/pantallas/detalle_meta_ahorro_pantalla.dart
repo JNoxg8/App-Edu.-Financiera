@@ -10,6 +10,7 @@ import '../servicio/meta_ahorro_servicio.dart';
 import '../modelo/recordatorio_meta.dart';
 import '../servicio/recordatorio_meta_servicio.dart';
 import '../../comun/tema.dart';
+import '../../comun/graficos.dart';
 
 class DetalleMetaAhorroPantalla extends StatefulWidget {
   final MetaAhorro meta;
@@ -537,13 +538,41 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
           children: [
             Text(meta.nombre, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            Text('Acumulado: ${_moneda.format(meta.montoAcumulado)}'),
-            Text('Objetivo: ${_moneda.format(meta.montoObjetivo)}'),
-            Text('Falta: ${_moneda.format(restante)}'),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(value: _progreso),
-            const SizedBox(height: 6),
-            Text('${(_progreso * 100).toStringAsFixed(0)} % completado'),
+            Row(
+              children: [
+                AnilloProgreso(
+                  fraccion: _progreso,
+                  tamano: 110,
+                  grosor: 11,
+                  color: colorAvanceMeta(meta.estado),
+                  colorPista:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  centro: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${(_progreso * 100).toStringAsFixed(0)} %',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('completado',
+                          style: Theme.of(context).textTheme.labelSmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Acumulado: ${_moneda.format(meta.montoAcumulado)}'),
+                      Text('Objetivo: ${_moneda.format(meta.montoObjetivo)}'),
+                      Text('Falta: ${_moneda.format(restante)}'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             Chip(label: Text(meta.estado)),
             Text(

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../comun/api_exception.dart';
+import '../../comun/cliente_api.dart';
 import '../../comun/moneda.dart';
 import '../../config/api_config.dart';
 import '../modelo/perfil.dart';
@@ -13,7 +14,7 @@ class PerfilServicio {
 
   final http.Client _cliente;
 
-  PerfilServicio({http.Client? cliente}) : _cliente = cliente ?? http.Client();
+  PerfilServicio({http.Client? cliente}) : _cliente = cliente ?? ClienteApi();
 
   final String _base = '${ApiConfig.baseUrl}/perfil';
 

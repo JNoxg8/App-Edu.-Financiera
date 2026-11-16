@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../config/api_config.dart';
+import '../../comun/cliente_api.dart';
 import '../../comun/api_exception.dart';
 import '../modelo/deuda.dart';
 
@@ -19,7 +20,7 @@ class DeudaServicio {
   /// En la app se usa el cliente real.
   final http.Client _cliente;
 
-  DeudaServicio({http.Client? cliente}) : _cliente = cliente ?? http.Client();
+  DeudaServicio({http.Client? cliente}) : _cliente = cliente ?? ClienteApi();
 
   final String _base = '${ApiConfig.baseUrl}/deudas';
 

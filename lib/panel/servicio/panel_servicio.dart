@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../comun/api_exception.dart';
+import '../../comun/cliente_api.dart';
 import '../../config/api_config.dart';
 import '../modelo/panel_principal.dart';
 
@@ -15,7 +16,7 @@ class PanelServicio {
   /// El cliente HTTP se puede inyectar para las pruebas (MockClient).
   final http.Client _cliente;
 
-  PanelServicio({http.Client? cliente}) : _cliente = cliente ?? http.Client();
+  PanelServicio({http.Client? cliente}) : _cliente = cliente ?? ClienteApi();
 
   /// RQ-15: una sola peticion trae las cuatro secciones del panel.
   Future<PanelPrincipal> consultar() async {

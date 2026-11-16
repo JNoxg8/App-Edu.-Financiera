@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../comun/api_exception.dart';
+import '../../comun/cliente_api.dart';
 import '../../config/api_config.dart';
 import '../modelo/meta_ahorro.dart';
 
@@ -13,7 +14,7 @@ class MetaAhorroServicio {
   final http.Client _cliente;
 
   MetaAhorroServicio({http.Client? cliente})
-    : _cliente = cliente ?? http.Client();
+    : _cliente = cliente ?? ClienteApi();
 
   String get _url => '${ApiConfig.baseUrl}/metas-ahorro';
 

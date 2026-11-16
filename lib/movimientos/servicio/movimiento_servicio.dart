@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../comun/api_exception.dart';
+import '../../comun/cliente_api.dart';
 import '../../config/api_config.dart';
 import '../modelo/movimiento.dart';
 
@@ -19,7 +20,7 @@ class MovimientoServicio {
   final http.Client _cliente;
 
   MovimientoServicio({http.Client? cliente})
-      : _cliente = cliente ?? http.Client();
+      : _cliente = cliente ?? ClienteApi();
 
   final String _base = '${ApiConfig.baseUrl}/movimientos';
   final String _baseCategorias = '${ApiConfig.baseUrl}/categorias';

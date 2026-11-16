@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../autenticacion/pantallas/acceso_pantalla.dart';
+import '../comun/sesion.dart';
 import '../config/api_config.dart';
 import '../perfil/modelo/perfil.dart';
 import '../perfil/pantallas/crear_perfil_pantalla.dart';
@@ -38,16 +40,37 @@ class _ArranquePantallaState extends State<ArranquePantalla> {
   @override
   void initState() {
     super.initState();
+    // Al cerrar sesion (o si el token vence) se vuelve a la pantalla de acceso
+    Sesion.cerrada.addListener(_alCerrarSesion);
     _cargar();
   }
 
   @override
   void dispose() {
+    Sesion.cerrada.removeListener(_alCerrarSesion);
     _temporizador?.cancel();
     super.dispose();
   }
 
+  void _alCerrarSesion() {
+    if (!mounted) return;
+    setState(() {
+      _perfil = null;
+      _cargando = false;
+      _error = false;
+    });
+  }
+
   Future<void> _cargar() async {
+    // Sin sesion no hay nada que consultar: se muestra la pantalla de acceso
+    if (!Sesion.activa) {
+      setState(() {
+        _perfil = null;
+        _cargando = false;
+        _error = false;
+      });
+      return;
+    }
     setState(() {
       _cargando = true;
       _error = false;
@@ -77,6 +100,10 @@ class _ArranquePantallaState extends State<ArranquePantalla> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Sesion.activa) {
+      return AccesoPantalla(onAutenticado: _cargar);
+    }
+
     if (_cargando) {
       return Scaffold(
         body: Center(

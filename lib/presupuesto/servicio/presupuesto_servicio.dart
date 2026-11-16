@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../comun/api_exception.dart';
+import '../../comun/cliente_api.dart';
 import '../../config/api_config.dart';
 import '../modelo/mes.dart';
 import '../modelo/presupuesto.dart';
@@ -18,7 +19,7 @@ class PresupuestoServicio {
   final http.Client _cliente;
 
   PresupuestoServicio({http.Client? cliente})
-      : _cliente = cliente ?? http.Client();
+      : _cliente = cliente ?? ClienteApi();
 
   final String _base = '${ApiConfig.baseUrl}/presupuestos';
 

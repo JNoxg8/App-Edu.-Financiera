@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../comun/api_exception.dart';
+import '../../comun/cliente_api.dart';
 import '../../config/api_config.dart';
 import '../modelo/recordatorio_meta.dart';
 
@@ -12,7 +13,7 @@ class RecordatorioMetaServicio {
   final http.Client _cliente;
 
   RecordatorioMetaServicio({http.Client? cliente})
-    : _cliente = cliente ?? http.Client();
+    : _cliente = cliente ?? ClienteApi();
 
   String _url(int metaAhorroId) =>
       '${ApiConfig.baseUrl}/metas-ahorro/$metaAhorroId/recordatorio';

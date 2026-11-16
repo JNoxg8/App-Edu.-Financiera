@@ -17,7 +17,7 @@ public class AporteMetaAdaptador implements AporteMetaPuerto {
     AporteMetaAhorroServicio aportes;
 
     @Override
-    public void revertirAporte(Long metaAhorroId, Long aporteId) {
-        aportes.eliminar(metaAhorroId, aporteId);
+    public void revertirAporte(Long usuarioId, Long metaAhorroId, Long aporteId) {
+        aportes.eliminar(usuarioId, metaAhorroId, aporteId);
     }
 }

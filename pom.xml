@@ -96,6 +96,12 @@
             <artifactId>quarkus-hibernate-validator</artifactId>
         </dependency>
 
+        <!-- BCrypt para guardar las contrasenas cifradas (BcryptUtil) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-elytron-security-common</artifactId>
+        </dependency>
+
         <!-- OpenAPI + Swagger UI en /q/swagger-ui -->
         <dependency>
             <groupId>io.quarkus</groupId>

@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.presupuesto;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
 import edu.ucentral.zenfi.presupuesto.aplicacion.PresupuestoServicio;
@@ -31,6 +33,12 @@ import static org.mockito.Mockito.verify;
  */
 @QuarkusTest
 class PresupuestoServicioTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final YearMonth MES_ACTUAL = YearMonth.now();
 

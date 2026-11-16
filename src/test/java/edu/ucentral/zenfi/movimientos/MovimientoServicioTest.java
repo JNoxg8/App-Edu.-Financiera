@@ -1,5 +1,6 @@
 package edu.ucentral.zenfi.movimientos;
 
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
 import edu.ucentral.zenfi.movimientos.dominio.modelo.CategoriaPredefinida;
@@ -39,6 +40,12 @@ import static org.mockito.Mockito.verify;
  */
 @QuarkusTest
 class MovimientoServicioTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final LocalDate HOY = LocalDate.now();
 

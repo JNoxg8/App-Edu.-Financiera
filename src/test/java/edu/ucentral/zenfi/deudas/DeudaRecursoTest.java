@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.deudas;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.config.JsonConfig;
@@ -29,6 +31,12 @@ import static org.hamcrest.Matchers.notNullValue;
  */
 @QuarkusTest
 class DeudaRecursoTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final String VENCIMIENTO = LocalDate.now().plusYears(2).toString();
 

@@ -27,13 +27,18 @@ public class Notificacion {
     @Column
     private Long metaAhorroId;
 
+    /** Dueno de la notificacion (el mismo de la meta que la genero). */
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
     public Notificacion() {
     }
 
-    public Notificacion(String titulo, String mensaje, Long metaAhorroId) {
+    public Notificacion(String titulo, String mensaje, Long metaAhorroId, Long usuarioId) {
         this.titulo = titulo;
         this.mensaje = mensaje;
         this.metaAhorroId = metaAhorroId;
+        this.usuarioId = usuarioId;
         this.leida = false;
         this.fechaCreacion = LocalDateTime.now();
     }
@@ -60,6 +65,14 @@ public class Notificacion {
 
     public Long getMetaAhorroId() {
         return metaAhorroId;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public boolean perteneceA(Long usuario) {
+        return usuario != null && usuario.equals(usuarioId);
     }
 
     public void desvincularMeta() {

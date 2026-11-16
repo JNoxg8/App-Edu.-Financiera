@@ -32,9 +32,6 @@ import java.util.List;
 @ApplicationScoped
 public class AporteMetaAhorroServicio {
 
-    /** Sin login (RQ-01/RQ-02 fuera de alcance): mismo usuario fijo que el resto. */
-    static final Long USUARIO_ACTUAL = 1L;
-
     @Inject
     AporteMetaAhorroRepositorio aporteRepositorio;
 
@@ -49,12 +46,11 @@ public class AporteMetaAhorroServicio {
 
     @Transactional
     public AporteMetaAhorroResponse registrar(
+            Long usuarioId,
             Long metaAhorroId,
             CrearAporteMetaAhorroRequest request) {
 
-        MetaAhorro meta = metaRepositorio.buscarPorId(metaAhorroId)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No se encontró la meta de ahorro"));
+        MetaAhorro meta = metaDe(usuarioId, metaAhorroId);
 
         if (request == null || request.monto() == null) {
             throw new ReglaNegocioException(
@@ -120,17 +116,15 @@ public class AporteMetaAhorroServicio {
         // Sincrono y en la misma transaccion: si no se puede crear el gasto,
         // el aporte tampoco queda guardado
         aporteRegistrado.fire(new AporteRegistrado(metaAhorroId, guardado.getId(),
-                USUARIO_ACTUAL, meta.getNombre(), guardado.getMonto(), guardado.getFecha()));
+                meta.getUsuarioId(), meta.getNombre(), guardado.getMonto(), guardado.getFecha()));
 
         return aRespuesta(guardado);
     }
 
     @Transactional
-    public List<AporteMetaAhorroResponse> listar(Long metaAhorroId) {
+    public List<AporteMetaAhorroResponse> listar(Long usuarioId, Long metaAhorroId) {
 
-        metaRepositorio.buscarPorId(metaAhorroId)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No se encontró la meta de ahorro"));
+        metaDe(usuarioId, metaAhorroId);
 
         return aporteRepositorio.listarPorMetaAhorroId(metaAhorroId)
                 .stream()
@@ -139,11 +133,9 @@ public class AporteMetaAhorroServicio {
     }
 
     @Transactional
-    public void eliminar(Long metaAhorroId, Long aporteId) {
+    public void eliminar(Long usuarioId, Long metaAhorroId, Long aporteId) {
 
-        MetaAhorro meta = metaRepositorio.buscarPorId(metaAhorroId)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No se encontró la meta de ahorro"));
+        MetaAhorro meta = metaDe(usuarioId, metaAhorroId);
 
         AporteMetaAhorro aporte = aporteRepositorio.buscarPorId(aporteId)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -166,6 +158,14 @@ public class AporteMetaAhorroServicio {
 
         // Movimientos borra el gasto del aporte: vuelve a estar disponible
         aporteEliminado.fire(new AporteEliminado(metaAhorroId, aporteId));
+    }
+
+    /** Meta del usuario; la de otro usuario responde 404, como si no existiera. */
+    private MetaAhorro metaDe(Long usuarioId, Long metaAhorroId) {
+        return metaRepositorio.buscarPorId(metaAhorroId)
+                .filter(meta -> meta.perteneceA(usuarioId))
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró la meta de ahorro"));
     }
 
     private AporteMetaAhorroResponse aRespuesta(AporteMetaAhorro aporte) {

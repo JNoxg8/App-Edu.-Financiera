@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.movimientos;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +17,12 @@ import static org.hamcrest.Matchers.notNullValue;
 /** Test de INTEGRACION de /categorias con H2 en memoria. */
 @QuarkusTest
 class CategoriaRecursoTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private String crear(String nombre, String tipo) {
         return given()

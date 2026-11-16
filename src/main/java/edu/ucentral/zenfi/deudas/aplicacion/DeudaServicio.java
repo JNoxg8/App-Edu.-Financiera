@@ -75,6 +75,46 @@ public class DeudaServicio {
     }
 
     /**
+     * Busca una deuda DEL USUARIO. Una deuda de otro usuario responde 404,
+     * igual que si no existiera: asi no se revela que ese id esta ocupado.
+     */
+    public Deuda obtener(Long usuarioId, Long id) {
+        Deuda deuda = obtener(id);
+        if (!usuarioId.equals(deuda.getUsuarioId())) {
+            throw new RecursoNoEncontradoException("No existe la deuda con id " + id);
+        }
+        return deuda;
+    }
+
+    // ------------------------------------------------------------------
+    // Operaciones que llegan por la API: primero se comprueba el dueno
+    // ------------------------------------------------------------------
+
+    public Deuda actualizar(Long usuarioId, Long id, String acreedor, BigDecimal tasa,
+                            int numeroCuotas, LocalDate fechaVencimiento) {
+        obtener(usuarioId, id);
+        return actualizar(id, acreedor, tasa, numeroCuotas, fechaVencimiento);
+    }
+
+    @Transactional
+    public Deuda registrarAbono(Long usuarioId, Long deudaId, BigDecimal monto, LocalDate fecha) {
+        obtener(usuarioId, deudaId);
+        return registrarAbono(deudaId, monto, fecha);
+    }
+
+    @Transactional
+    public Deuda eliminarAbono(Long usuarioId, Long deudaId, Long abonoId) {
+        obtener(usuarioId, deudaId);
+        return eliminarAbono(deudaId, abonoId);
+    }
+
+    @Transactional
+    public void eliminar(Long usuarioId, Long id) {
+        obtener(usuarioId, id);
+        eliminar(id);
+    }
+
+    /**
      * RQ-07: registrar un abono. El saldo pendiente queda actualizado
      * automaticamente porque se recalcula en cada consulta.
      */

@@ -34,6 +34,14 @@ public class MetaAhorro {
     @Column(nullable = false)
     private String estado;
 
+    /**
+     * Dueno de la meta (id de su cuenta). Admite null solo para que la
+     * columna se pueda agregar a una tabla con datos; al arrancar, las metas
+     * antiguas se asignan al usuario 1 (ver MigracionDatosSinUsuario).
+     */
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
     public MetaAhorro() {
     }
 
@@ -95,6 +103,19 @@ public class MetaAhorro {
 
     public String getEstado() {
         return estado;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    /** true si la meta es del usuario indicado. */
+    public boolean perteneceA(Long usuario) {
+        return usuario != null && usuario.equals(usuarioId);
     }
 
     public void setNombre(String nombre) {

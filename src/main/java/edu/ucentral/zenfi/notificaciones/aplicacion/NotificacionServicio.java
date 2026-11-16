@@ -18,29 +18,32 @@ public class NotificacionServicio {
     NotificacionRepositorio repositorio;
 
     @Transactional
-    public Notificacion crear(String titulo, String mensaje, Long metaAhorroId) {
+    public Notificacion crear(String titulo, String mensaje, Long metaAhorroId, Long usuarioId) {
 
         Notificacion notificacion = new Notificacion(
                 titulo,
                 mensaje,
-                metaAhorroId
+                metaAhorroId,
+                usuarioId
         );
 
         return repositorio.guardar(notificacion);
     }
 
-    public List<Notificacion> listar() {
-        return repositorio.listar();
+    public List<Notificacion> listar(Long usuarioId) {
+        return repositorio.listarPorUsuario(usuarioId);
     }
 
-    public List<Notificacion> listarNoLeidas() {
-        return repositorio.listarNoLeidas();
+    public List<Notificacion> listarNoLeidas(Long usuarioId) {
+        return repositorio.listarNoLeidasPorUsuario(usuarioId);
     }
 
     @Transactional
-    public Notificacion marcarComoLeida(Long id) {
+    public Notificacion marcarComoLeida(Long usuarioId, Long id) {
 
+        // La notificacion de otro usuario responde 404, como si no existiera
         Notificacion notificacion = repositorio.buscarPorId(id)
+                .filter(n -> n.perteneceA(usuarioId))
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "La notificación no existe"
                 ));

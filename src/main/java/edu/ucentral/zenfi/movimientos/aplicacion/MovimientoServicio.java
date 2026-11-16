@@ -127,7 +127,7 @@ public class MovimientoServicio {
             return;
         }
         if (movimiento.esAporteAMeta()) {
-            aporteMeta.revertirAporte(movimiento.getMetaAhorroId(), movimiento.getAporteId());
+            aporteMeta.revertirAporte(usuarioId, movimiento.getMetaAhorroId(), movimiento.getAporteId());
             return;
         }
         repositorio.eliminar(id);

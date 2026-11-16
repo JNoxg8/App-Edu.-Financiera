@@ -20,6 +20,8 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.time.YearMonth;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 /**
  * RQ-11: adaptador de entrada. Traduce HTTP a llamadas al servicio.
@@ -31,10 +33,12 @@ import java.time.YearMonth;
 @Tag(name = "Presupuesto", description = "RQ-11: presupuesto mensual")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class PresupuestoRecurso {
 
-    /** Sin login (RQ-01/RQ-02 fuera de alcance): mismo usuario fijo que deudas. */
-    private static final Long USUARIO_ACTUAL = 1L;
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     PresupuestoServicio servicio;
@@ -49,7 +53,7 @@ public class PresupuestoRecurso {
     @APIResponse(responseCode = "409", description = "El mes ya tiene presupuesto o ya paso")
     public Response crear(@Valid CrearPresupuestoDto dto) {
         PresupuestoRespuestaDto creado = PresupuestoRespuestaDto.desde(
-                servicio.crear(USUARIO_ACTUAL, YearMonth.parse(dto.mes()), dto.montoLimite()));
+                servicio.crear(usuarioActual.id(), YearMonth.parse(dto.mes()), dto.montoLimite()));
 
         return Response.status(Response.Status.CREATED)
                 .entity(creado)
@@ -70,6 +74,6 @@ public class PresupuestoRecurso {
             @Pattern(regexp = "\\d{4}-(0[1-9]|1[0-2])", message = "El mes debe tener el formato AAAA-MM")
             String mes) {
         YearMonth consultado = (mes == null) ? YearMonth.now() : YearMonth.parse(mes);
-        return PresupuestoRespuestaDto.desde(servicio.consultar(USUARIO_ACTUAL, consultado));
+        return PresupuestoRespuestaDto.desde(servicio.consultar(usuarioActual.id(), consultado));
     }
 }

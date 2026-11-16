@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.metasahorro;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.presupuesto.dominio.modelo.EstadoPresupuesto;
 import edu.ucentral.zenfi.presupuesto.dominio.modelo.Presupuesto;
 import edu.ucentral.zenfi.presupuesto.dominio.puerto.GastosMensualesPuerto;
@@ -37,6 +39,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 @QuarkusTest
 class AporteComoGastoRecursoTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final LocalDate HOY = LocalDate.now();
     private static final YearMonth MES = YearMonth.now();
@@ -101,14 +109,15 @@ class AporteComoGastoRecursoTest {
         // El presupuesto usa el total de gastos del mes (HU011); se arma con
         // ese mismo puerto para no depender de otras pruebas que crean el
         // presupuesto del mes actual en la base compartida
-        Presupuesto presupuesto = Presupuesto.crear(1L, MES, new BigDecimal("2000000"), MES);
-        EstadoPresupuesto antes = presupuesto.estado(gastosMensuales.totalGastos(1L, MES));
+        Long usuario = Sesiones.usuarioId(Sesiones.PRINCIPAL);
+        Presupuesto presupuesto = Presupuesto.crear(usuario, MES, new BigDecimal("2000000"), MES);
+        EstadoPresupuesto antes = presupuesto.estado(gastosMensuales.totalGastos(usuario, MES));
         BigDecimal reporteAntes = numero(given().get("/reportes/mensual").path("totalGastado"));
         BigDecimal panelAntes = numero(given().get("/panel").path("gastosMesActual"));
 
         aportar(crearMeta("Moto caso real", "0"), "500000");
 
-        EstadoPresupuesto despues = presupuesto.estado(gastosMensuales.totalGastos(1L, MES));
+        EstadoPresupuesto despues = presupuesto.estado(gastosMensuales.totalGastos(usuario, MES));
         assertEquals(0, new BigDecimal("500000").compareTo(
                 antes.disponible().subtract(despues.disponible())));
 

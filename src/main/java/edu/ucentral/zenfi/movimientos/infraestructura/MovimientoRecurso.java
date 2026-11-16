@@ -32,6 +32,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 /**
  * HU009: adaptador de entrada de ingresos y gastos.
@@ -43,10 +45,12 @@ import java.util.Locale;
 @Tag(name = "Movimientos", description = "HU009: registro de ingresos y gastos por categoria")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class MovimientoRecurso {
 
-    /** Sin login (RQ-01/RQ-02 fuera de alcance): mismo usuario fijo que deudas. */
-    private static final Long USUARIO_ACTUAL = 1L;
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     MovimientoServicio servicio;
@@ -60,7 +64,7 @@ public class MovimientoRecurso {
     @APIResponse(responseCode = "404", description = "La categoria o la deuda no existen")
     @APIResponse(responseCode = "409", description = "Categoria de otro tipo, o el abono excede el saldo")
     public Response crear(@Valid CrearMovimientoDto dto) {
-        Movimiento creado = servicio.crear(USUARIO_ACTUAL, dto.tipo(), dto.monto(), dto.fecha(),
+        Movimiento creado = servicio.crear(usuarioActual.id(), dto.tipo(), dto.monto(), dto.fecha(),
                 dto.descripcion(), dto.categoriaId(), dto.deudaId());
 
         return Response.status(Response.Status.CREATED)
@@ -106,7 +110,7 @@ public class MovimientoRecurso {
             String direccion) {
 
         FiltroMovimientos filtro = new FiltroMovimientos(
-                USUARIO_ACTUAL,
+                usuarioActual.id(),
                 tipo == null ? null : TipoMovimiento.valueOf(tipo.toUpperCase(Locale.ROOT)),
                 categoriaId,
                 buscar,
@@ -133,7 +137,7 @@ public class MovimientoRecurso {
             @QueryParam("desde") LocalDate desde,
             @Parameter(description = "Fecha final (yyyy-MM-dd). Vacio = hasta hoy")
             @QueryParam("hasta") LocalDate hasta) {
-        return ResumenRespuestaDto.desde(servicio.resumen(USUARIO_ACTUAL, desde, hasta));
+        return ResumenRespuestaDto.desde(servicio.resumen(usuarioActual.id(), desde, hasta));
     }
 
     @GET
@@ -142,7 +146,7 @@ public class MovimientoRecurso {
     @APIResponse(responseCode = "200", description = "Movimiento encontrado")
     @APIResponse(responseCode = "404", description = "El movimiento no existe")
     public MovimientoRespuestaDto obtener(@PathParam("id") Long id) {
-        return MovimientoRespuestaDto.desde(servicio.obtener(USUARIO_ACTUAL, id));
+        return MovimientoRespuestaDto.desde(servicio.obtener(usuarioActual.id(), id));
     }
 
     @PUT
@@ -155,7 +159,7 @@ public class MovimientoRecurso {
     @APIResponse(responseCode = "409", description = "El cambio viola una regla de negocio")
     public MovimientoRespuestaDto actualizar(@PathParam("id") Long id,
                                              @Valid ActualizarMovimientoDto dto) {
-        Movimiento actualizado = servicio.actualizar(USUARIO_ACTUAL, id, dto.tipo(), dto.monto(),
+        Movimiento actualizado = servicio.actualizar(usuarioActual.id(), id, dto.tipo(), dto.monto(),
                 dto.fecha(), dto.descripcion(), dto.categoriaId());
         return MovimientoRespuestaDto.desde(actualizado);
     }
@@ -168,7 +172,7 @@ public class MovimientoRecurso {
     @APIResponse(responseCode = "204", description = "Movimiento eliminado")
     @APIResponse(responseCode = "404", description = "El movimiento no existe")
     public Response eliminar(@PathParam("id") Long id) {
-        servicio.eliminar(USUARIO_ACTUAL, id);
+        servicio.eliminar(usuarioActual.id(), id);
         return Response.noContent().build();
     }
 }

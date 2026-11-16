@@ -15,6 +15,8 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.time.YearMonth;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 /**
  * RQ-25: adaptador de entrada del reporte mensual. Sin logica de negocio.
@@ -25,10 +27,12 @@ import java.time.YearMonth;
 @Path("/reportes")
 @Tag(name = "Reporte", description = "RQ-25: reporte mensual de gastos vs presupuesto")
 @Produces(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class ReporteRecurso {
 
-    /** Sin login (RQ-01/RQ-02 fuera de alcance): mismo usuario fijo que deudas. */
-    private static final Long USUARIO_ACTUAL = 1L;
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     ReporteServicio servicio;
@@ -48,6 +52,6 @@ public class ReporteRecurso {
             @Pattern(regexp = "\\d{4}-(0[1-9]|1[0-2])", message = "El mes debe tener el formato AAAA-MM")
             String mes) {
         YearMonth consultado = (mes == null) ? YearMonth.now() : YearMonth.parse(mes);
-        return ReporteMensualRespuestaDto.desde(servicio.generar(USUARIO_ACTUAL, consultado));
+        return ReporteMensualRespuestaDto.desde(servicio.generar(usuarioActual.id(), consultado));
     }
 }

@@ -13,11 +13,18 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 @Path("/notificaciones")
 @Tag(name = "Notificaciones", description = "Avisos generados por los recordatorios de metas")
 @Produces(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class NotificacionRecurso {
+
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     NotificacionServicio servicio;
@@ -34,7 +41,7 @@ public class NotificacionRecurso {
     @Operation(summary = "Listar notificaciones (las mas recientes primero)")
     public List<NotificacionResponse> listar() {
         procesador.procesarRecordatoriosVencidos();
-        return servicio.listar()
+        return servicio.listar(usuarioActual.id())
                 .stream()
                 .map(this::convertir)
                 .toList();
@@ -45,7 +52,7 @@ public class NotificacionRecurso {
     @Operation(summary = "Listar las notificaciones no leidas")
     public List<NotificacionResponse> listarNoLeidas() {
         procesador.procesarRecordatoriosVencidos();
-        return servicio.listarNoLeidas()
+        return servicio.listarNoLeidas(usuarioActual.id())
                 .stream()
                 .map(this::convertir)
                 .toList();
@@ -55,7 +62,7 @@ public class NotificacionRecurso {
     @Path("/{id}/leida")
     @Operation(summary = "Marcar una notificacion como leida")
     public NotificacionResponse marcarComoLeida(@PathParam("id") Long id) {
-        return convertir(servicio.marcarComoLeida(id));
+        return convertir(servicio.marcarComoLeida(usuarioActual.id(), id));
     }
 
     private NotificacionResponse convertir(Notificacion notificacion) {

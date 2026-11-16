@@ -20,8 +20,8 @@ public class MetasPanelAdaptador implements MetasPanelPuerto {
     MetaAhorroServicio metas;
 
     @Override
-    public List<ResumenMeta> metasActivas() {
-        return metas.listar().stream()
+    public List<ResumenMeta> metasActivas(Long usuarioId) {
+        return metas.listar(usuarioId).stream()
                 .filter(m -> MetaAhorro.ACTIVA.equals(m.estado()))
                 .map(m -> ResumenMeta.de(m.id(), m.nombre(), m.montoObjetivo(),
                         m.montoAcumulado(), m.fechaLimite()))

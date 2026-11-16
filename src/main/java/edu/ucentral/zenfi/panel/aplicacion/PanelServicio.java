@@ -37,7 +37,7 @@ public class PanelServicio {
                 movimientos.totales(usuarioId, INICIO, hoy),
                 movimientos.totales(usuarioId, mes.atDay(1), mes.atEndOfMonth()),
                 presupuestos.buscar(usuarioId, mes).orElse(null),
-                metas.metasActivas(),
+                metas.metasActivas(usuarioId),
                 deudas.deudasPendientes(usuarioId));
     }
 }

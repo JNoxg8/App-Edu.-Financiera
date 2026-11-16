@@ -16,12 +16,19 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 @Path("/metas-ahorro/{metaAhorroId}/recordatorio")
 @Tag(name = "Recordatorios de metas", description = "Frecuencia y activacion del recordatorio de cada meta")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class RecordatorioMetaRecurso {
+
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     RecordatorioMetaServicio servicio;
@@ -31,7 +38,7 @@ public class RecordatorioMetaRecurso {
     public RecordatorioMetaResponse consultar(
             @PathParam("metaAhorroId") Long metaAhorroId) {
 
-        return convertir(servicio.consultar(metaAhorroId));
+        return convertir(servicio.consultar(usuarioActual.id(), metaAhorroId));
     }
 
     @PUT
@@ -41,6 +48,7 @@ public class RecordatorioMetaRecurso {
             @Valid ConfigurarRecordatorioRequest request) {
 
         RecordatorioMeta recordatorio = servicio.configurar(
+                usuarioActual.id(),
                 metaAhorroId,
                 request.frecuencia(),
                 request.activo()

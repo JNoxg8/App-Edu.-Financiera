@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.genericos;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,12 @@ import static org.hamcrest.Matchers.containsString;
  */
 @QuarkusTest
 class GenericoRecursoTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     @Test
     @DisplayName("GET /genericos/version responde la version del aplicativo")

@@ -21,13 +21,13 @@ public class NotificacionRepositorioPanache
     }
 
     @Override
-    public List<Notificacion> listar() {
-        return find("order by fechaCreacion desc").list();
+    public List<Notificacion> listarPorUsuario(Long usuarioId) {
+        return find("usuarioId = ?1 order by fechaCreacion desc", usuarioId).list();
     }
 
     @Override
-    public List<Notificacion> listarNoLeidas() {
-        return find("leida = false order by fechaCreacion desc").list();
+    public List<Notificacion> listarNoLeidasPorUsuario(Long usuarioId) {
+        return find("usuarioId = ?1 and leida = false order by fechaCreacion desc", usuarioId).list();
     }
 
     @Override

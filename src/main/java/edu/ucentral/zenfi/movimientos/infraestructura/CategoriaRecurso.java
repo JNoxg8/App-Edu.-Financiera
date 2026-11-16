@@ -27,6 +27,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Locale;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 /**
  * HU009: categorias de ingresos y gastos.
@@ -36,10 +38,12 @@ import java.util.Locale;
 @Tag(name = "Categorias", description = "HU009: categorias predefinidas y personalizadas")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class CategoriaRecurso {
 
-    /** Sin login (RQ-01/RQ-02 fuera de alcance): mismo usuario fijo que deudas. */
-    private static final Long USUARIO_ACTUAL = 1L;
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     CategoriaServicio servicio;
@@ -57,7 +61,7 @@ public class CategoriaRecurso {
             String tipo) {
 
         TipoMovimiento tipoFiltro = tipo == null ? null : TipoMovimiento.valueOf(tipo.toUpperCase(Locale.ROOT));
-        return servicio.listar(USUARIO_ACTUAL, tipoFiltro).stream()
+        return servicio.listar(usuarioActual.id(), tipoFiltro).stream()
                 .map(CategoriaRespuestaDto::desde)
                 .toList();
     }
@@ -70,7 +74,7 @@ public class CategoriaRecurso {
     @APIResponse(responseCode = "400", description = "Datos incompletos o invalidos")
     @APIResponse(responseCode = "409", description = "Ya existe una categoria con ese nombre")
     public Response crear(@Valid CrearCategoriaDto dto) {
-        Categoria creada = servicio.crear(USUARIO_ACTUAL, dto.nombre(), dto.tipo());
+        Categoria creada = servicio.crear(usuarioActual.id(), dto.nombre(), dto.tipo());
         return Response.status(Response.Status.CREATED)
                 .entity(CategoriaRespuestaDto.desde(creada))
                 .build();
@@ -85,7 +89,7 @@ public class CategoriaRecurso {
     @APIResponse(responseCode = "409", description = "Es predefinida o el nombre ya existe")
     public CategoriaRespuestaDto renombrar(@PathParam("id") Long id,
                                            @Valid ActualizarCategoriaDto dto) {
-        return CategoriaRespuestaDto.desde(servicio.renombrar(USUARIO_ACTUAL, id, dto.nombre()));
+        return CategoriaRespuestaDto.desde(servicio.renombrar(usuarioActual.id(), id, dto.nombre()));
     }
 
     @DELETE
@@ -96,7 +100,7 @@ public class CategoriaRecurso {
     @APIResponse(responseCode = "404", description = "La categoria no existe")
     @APIResponse(responseCode = "409", description = "Es predefinida")
     public Response eliminar(@PathParam("id") Long id) {
-        servicio.eliminar(USUARIO_ACTUAL, id);
+        servicio.eliminar(usuarioActual.id(), id);
         return Response.noContent().build();
     }
 }

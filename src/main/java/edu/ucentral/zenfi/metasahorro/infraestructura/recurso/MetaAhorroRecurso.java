@@ -21,12 +21,19 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 @Path("/metas-ahorro")
 @Tag(name = "Metas de ahorro", description = "Gestion de metas de ahorro")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class MetaAhorroRecurso {
+
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     MetaAhorroServicio servicio;
@@ -38,7 +45,7 @@ public class MetaAhorroRecurso {
     )
     public Response crear(@Valid CrearMetaAhorroRequest request) {
 
-        MetaAhorroResponse respuesta = servicio.crear(request);
+        MetaAhorroResponse respuesta = servicio.crear(usuarioActual.id(), request);
 
         return Response.status(Response.Status.CREATED)
                 .entity(respuesta)
@@ -51,7 +58,7 @@ public class MetaAhorroRecurso {
             description = "Consulta todas las metas de ahorro registradas"
     )
     public List<MetaAhorroResponse> listar() {
-        return servicio.listar();
+        return servicio.listar(usuarioActual.id());
     }
 
     @DELETE
@@ -61,7 +68,7 @@ public class MetaAhorroRecurso {
             description = "Elimina una meta y sus registros asociados"
     )
     public Response eliminar(@PathParam("id") Long id) {
-        servicio.eliminar(id);
+        servicio.eliminar(usuarioActual.id(), id);
         return Response.noContent().build();
     }
 }

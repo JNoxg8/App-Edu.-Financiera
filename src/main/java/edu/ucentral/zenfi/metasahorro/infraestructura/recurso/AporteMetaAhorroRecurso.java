@@ -19,12 +19,19 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 @Path("/metas-ahorro/{metaAhorroId}/aportes")
 @Tag(name = "Aportes de metas de ahorro", description = "Registro e historial de aportes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class AporteMetaAhorroRecurso {
+
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     AporteMetaAhorroServicio servicio;
@@ -39,7 +46,7 @@ public class AporteMetaAhorroRecurso {
             @Valid CrearAporteMetaAhorroRequest request) {
 
         AporteMetaAhorroResponse respuesta =
-                servicio.registrar(metaAhorroId, request);
+                servicio.registrar(usuarioActual.id(), metaAhorroId, request);
 
         return Response.status(Response.Status.CREATED)
                 .entity(respuesta)
@@ -54,7 +61,7 @@ public class AporteMetaAhorroRecurso {
     public List<AporteMetaAhorroResponse> listar(
             @PathParam("metaAhorroId") Long metaAhorroId) {
 
-        return servicio.listar(metaAhorroId);
+        return servicio.listar(usuarioActual.id(), metaAhorroId);
     }
 
     @DELETE
@@ -67,7 +74,7 @@ public class AporteMetaAhorroRecurso {
             @PathParam("metaAhorroId") Long metaAhorroId,
             @PathParam("aporteId") Long aporteId) {
 
-        servicio.eliminar(metaAhorroId, aporteId);
+        servicio.eliminar(usuarioActual.id(), metaAhorroId, aporteId);
 
         return Response.noContent().build();
     }

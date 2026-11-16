@@ -10,5 +10,5 @@ package edu.ucentral.zenfi.movimientos.dominio.puerto;
 public interface AporteMetaPuerto {
 
     /** Elimina el aporte: el ahorro acumulado de la meta vuelve a bajar. */
-    void revertirAporte(Long metaAhorroId, Long aporteId);
+    void revertirAporte(Long usuarioId, Long metaAhorroId, Long aporteId);
 }

@@ -24,6 +24,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 
 import java.util.List;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 /**
  * RQ-07: adaptador de entrada. Traduce HTTP a llamadas al servicio.
@@ -35,16 +37,12 @@ import java.util.List;
 @Tag(name = "Deudas", description = "RQ-07: registro y seguimiento de deudas activas")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityRequirement(name = "token")
 public class DeudaRecurso {
 
-    /**
-     * Mientras no exista login (RQ-01 y RQ-02 quedaron fuera del alcance),
-     * la aplicacion trabaja siempre con el usuario fijo id = 1.
-     *
-     * Cuando se agregue autenticacion, este valor sale del token
-     * y no hay que cambiar nada mas.
-     */
-    private static final Long USUARIO_ACTUAL = 1L;
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     DeudaServicio servicio;
@@ -64,7 +62,7 @@ public class DeudaRecurso {
                 dto.tasaInteresAnual(),
                 dto.numeroCuotas(),
                 dto.fechaVencimiento(),
-                USUARIO_ACTUAL,
+                usuarioActual.id(),
                 null);
 
         Deuda creada = servicio.crear(deuda);
@@ -80,7 +78,7 @@ public class DeudaRecurso {
             description = "Devuelve cada deuda con su saldo pendiente actualizado")
     @APIResponse(responseCode = "200", description = "Listado de deudas")
     public List<DeudaRespuestaDto> listar() {
-        return servicio.listar(USUARIO_ACTUAL).stream()
+        return servicio.listar(usuarioActual.id()).stream()
                 .map(DeudaRespuestaDto::desde)
                 .toList();
     }
@@ -93,7 +91,7 @@ public class DeudaRecurso {
     @APIResponse(responseCode = "200", description = "Deuda encontrada")
     @APIResponse(responseCode = "404", description = "La deuda no existe")
     public DeudaRespuestaDto obtener(@PathParam("id") Long id) {
-        return DeudaRespuestaDto.desde(servicio.obtener(id));
+        return DeudaRespuestaDto.desde(servicio.obtener(usuarioActual.id(), id));
     }
 
     @POST
@@ -106,7 +104,7 @@ public class DeudaRecurso {
     @APIResponse(responseCode = "404", description = "La deuda no existe")
     @APIResponse(responseCode = "409", description = "El abono excede el saldo o la deuda ya esta pagada")
     public DeudaRespuestaDto abonar(@PathParam("id") Long id, @Valid CrearAbonoDto dto) {
-        Deuda actualizada = servicio.registrarAbono(id, dto.monto(), dto.fecha());
+        Deuda actualizada = servicio.registrarAbono(usuarioActual.id(), id, dto.monto(), dto.fecha());
         return DeudaRespuestaDto.desde(actualizada);
     }
 
@@ -120,7 +118,7 @@ public class DeudaRecurso {
     @APIResponse(responseCode = "404", description = "La deuda o el abono no existen")
     public DeudaRespuestaDto eliminarAbono(@PathParam("id") Long id,
                                            @PathParam("abonoId") Long abonoId) {
-        return DeudaRespuestaDto.desde(servicio.eliminarAbono(id, abonoId));
+        return DeudaRespuestaDto.desde(servicio.eliminarAbono(usuarioActual.id(), id, abonoId));
     }
 
     @PUT
@@ -136,6 +134,7 @@ public class DeudaRecurso {
     public DeudaRespuestaDto actualizar(@PathParam("id") Long id,
                                         @Valid ActualizarDeudaDto dto) {
         Deuda actualizada = servicio.actualizar(
+                usuarioActual.id(),
                 id,
                 dto.acreedor(),
                 dto.tasaInteresAnual(),
@@ -151,7 +150,7 @@ public class DeudaRecurso {
     @APIResponse(responseCode = "204", description = "Deuda eliminada")
     @APIResponse(responseCode = "404", description = "La deuda no existe")
     public Response eliminar(@PathParam("id") Long id) {
-        servicio.eliminar(id);
+        servicio.eliminar(usuarioActual.id(), id);
         return Response.noContent().build();
     }
 }

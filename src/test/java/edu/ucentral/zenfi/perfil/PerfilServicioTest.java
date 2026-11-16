@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.perfil;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
 import edu.ucentral.zenfi.perfil.aplicacion.PerfilServicio;
@@ -26,6 +28,12 @@ import static org.mockito.Mockito.verify;
 /** Servicio con el repositorio simulado: no hay base de datos. */
 @QuarkusTest
 class PerfilServicioTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     @Inject
     PerfilServicio servicio;

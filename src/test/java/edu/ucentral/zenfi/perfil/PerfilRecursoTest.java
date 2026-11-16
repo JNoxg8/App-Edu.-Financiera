@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.perfil;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +26,12 @@ import static org.hamcrest.Matchers.notNullValue;
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PerfilRecursoTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final String PERFIL_VALIDO = """
             {"nombre": "Ana Gomez", "moneda": "COP", "nivel": "BASICO"}
@@ -81,7 +89,8 @@ class PerfilRecursoTest {
                 .when().post("/perfil")
                 .then()
                 .statusCode(201)
-                .body("id", is(1))
+                // El perfil usa el id de la cuenta: un perfil por usuario
+                .body("id", is(Sesiones.usuarioId(Sesiones.PRINCIPAL).intValue()))
                 .body("nombre", is("Ana Gomez"))
                 .body("moneda", is("COP"))
                 .body("simboloMoneda", is("$"))

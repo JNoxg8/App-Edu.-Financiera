@@ -1,5 +1,6 @@
 package edu.ucentral.zenfi.deudas;
 
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.deudas.aplicacion.DeudaServicio;
 import edu.ucentral.zenfi.deudas.dominio.modelo.Abono;
@@ -35,6 +36,12 @@ import static org.mockito.Mockito.verify;
  */
 @QuarkusTest
 class DeudaServicioTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     @Inject
     DeudaServicio servicio;

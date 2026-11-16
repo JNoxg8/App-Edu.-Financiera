@@ -11,9 +11,9 @@ public interface NotificacionRepositorio {
 
     Notificacion guardar(Notificacion notificacion);
 
-    List<Notificacion> listar();
+    List<Notificacion> listarPorUsuario(Long usuarioId);
 
-    List<Notificacion> listarNoLeidas();
+    List<Notificacion> listarNoLeidasPorUsuario(Long usuarioId);
 
     Optional<Notificacion> buscarPorId(Long id);
 

@@ -46,7 +46,7 @@ public class MetaAhorroServicio {
     Event<AporteEliminado> aporteEliminado;
 
     @Transactional
-    public MetaAhorroResponse crear(CrearMetaAhorroRequest request) {
+    public MetaAhorroResponse crear(Long usuarioId, CrearMetaAhorroRequest request) {
 
         if (!request.fechaLimite().isAfter(LocalDate.now())) {
             throw new ReglaNegocioException(
@@ -64,6 +64,7 @@ public class MetaAhorroServicio {
                 request.fechaLimite(),
                 request.montoInicial()
         );
+        metaAhorro.setUsuarioId(usuarioId);
 
         MetaAhorro guardada = repositorio.guardar(metaAhorro);
 
@@ -94,9 +95,9 @@ public class MetaAhorroServicio {
      * terminar la transaccion.
      */
     @Transactional
-    public List<MetaAhorroResponse> listar() {
+    public List<MetaAhorroResponse> listar(Long usuarioId) {
         LocalDate hoy = LocalDate.now();
-        List<MetaAhorro> metas = repositorio.listar();
+        List<MetaAhorro> metas = repositorio.listarPorUsuario(usuarioId);
         metas.forEach(meta -> meta.recalcularEstado(hoy));
         return metas.stream()
                 .map(this::convertirRespuesta)
@@ -104,11 +105,9 @@ public class MetaAhorroServicio {
     }
 
     @Transactional
-    public void eliminar(Long id) {
+    public void eliminar(Long usuarioId, Long id) {
 
-        MetaAhorro meta = repositorio.buscarPorId(id)
-                .orElseThrow(() ->
-                        new RecursoNoEncontradoException("No se encontró la meta de ahorro"));
+        MetaAhorro meta = obtenerDe(usuarioId, id);
 
         List<AporteMetaAhorro> aportes =
                 aporteRepositorio.listarPorMetaAhorroId(id);
@@ -126,6 +125,17 @@ public class MetaAhorroServicio {
         notificacionRepositorio.desvincularMeta(id);
 
         repositorio.eliminar(meta.getId());
+    }
+
+    /**
+     * Meta DEL USUARIO. Una meta de otro usuario responde 404, igual que si
+     * no existiera: asi no se revela que ese id esta ocupado.
+     */
+    public MetaAhorro obtenerDe(Long usuarioId, Long id) {
+        return repositorio.buscarPorId(id)
+                .filter(meta -> meta.perteneceA(usuarioId))
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException("No se encontró la meta de ahorro"));
     }
 
     private MetaAhorroResponse convertirRespuesta(MetaAhorro meta) {

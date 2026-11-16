@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.metasahorro;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.metasahorro.dominio.repositorio.MetaAhorroRepositorio;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -27,6 +29,12 @@ import static org.hamcrest.Matchers.is;
  */
 @QuarkusTest
 class AporteMetaAhorroRecursoTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final LocalDate HOY = LocalDate.now();
 

@@ -16,6 +16,8 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import edu.ucentral.zenfi.common.seguridad.UsuarioActual;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 /**
  * Endpoints del perfil (HU001).
@@ -27,10 +29,12 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Perfil", description = "HU001: crear perfil")
+@SecurityRequirement(name = "token")
 public class PerfilRecurso {
 
-    /** Sin login (RQ-01/RQ-02 fuera de alcance): mismo usuario fijo que deudas. */
-    private static final Long USUARIO_ACTUAL = 1L;
+    /** Usuario de la peticion: lo identifica FiltroAutenticacion con el token. */
+    @Inject
+    UsuarioActual usuarioActual;
 
     @Inject
     PerfilServicio servicio;
@@ -42,7 +46,7 @@ public class PerfilRecurso {
     @APIResponse(responseCode = "200", description = "Perfil encontrado")
     @APIResponse(responseCode = "404", description = "El perfil aun no ha sido creado")
     public PerfilRespuestaDto obtener() {
-        return PerfilRespuestaDto.desde(servicio.obtener(USUARIO_ACTUAL));
+        return PerfilRespuestaDto.desde(servicio.obtener(usuarioActual.id()));
     }
 
     @POST
@@ -53,7 +57,7 @@ public class PerfilRecurso {
     @APIResponse(responseCode = "400", description = "Datos incompletos o invalidos")
     @APIResponse(responseCode = "409", description = "El perfil ya fue creado")
     public Response crear(@Valid CrearPerfilDto dto) {
-        Perfil perfil = servicio.crear(USUARIO_ACTUAL, dto.nombre(), dto.moneda(), dto.nivel());
+        Perfil perfil = servicio.crear(usuarioActual.id(), dto.nombre(), dto.moneda(), dto.nivel());
         return Response.status(Response.Status.CREATED)
                 .entity(PerfilRespuestaDto.desde(perfil))
                 .build();

@@ -63,7 +63,8 @@ public class ProcesadorRecordatorios {
             notificacionServicio.crear(
                     "Recordatorio de ahorro",
                     "Es momento de aportar a tu meta: " + meta.getNombre(),
-                    meta.getId()
+                    meta.getId(),
+                    meta.getUsuarioId()
             );
 
             recordatorioServicio.avanzarProximoRecordatorio(recordatorio);

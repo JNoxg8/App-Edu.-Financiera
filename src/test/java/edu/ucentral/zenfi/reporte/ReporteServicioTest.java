@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.reporte;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.presupuesto.dominio.modelo.Presupuesto;
 import edu.ucentral.zenfi.reporte.aplicacion.ReporteServicio;
 import edu.ucentral.zenfi.reporte.dominio.modelo.GastoCategoria;
@@ -28,6 +30,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @QuarkusTest
 class ReporteServicioTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final YearMonth MES = YearMonth.of(2026, 10);
 

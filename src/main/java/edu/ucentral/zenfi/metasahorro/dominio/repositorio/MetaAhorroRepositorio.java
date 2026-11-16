@@ -14,7 +14,10 @@ public interface MetaAhorroRepositorio {
 
     Optional<MetaAhorro> buscarPorId(Long id);
 
+    /** Todas las metas (las usan los procesos internos, como los recordatorios). */
     List<MetaAhorro> listar();
+
+    List<MetaAhorro> listarPorUsuario(Long usuarioId);
 
     void eliminar(Long id);
 }

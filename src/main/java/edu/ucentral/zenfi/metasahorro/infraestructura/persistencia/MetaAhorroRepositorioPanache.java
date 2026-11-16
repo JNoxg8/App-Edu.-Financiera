@@ -56,6 +56,12 @@ public class MetaAhorroRepositorioPanache
 
     @Override
     @Transactional
+    public List<MetaAhorro> listarPorUsuario(Long usuarioId) {
+        return list("usuarioId", usuarioId);
+    }
+
+    @Override
+    @Transactional
     public void eliminar(Long id) {
         deleteById(id);
     }

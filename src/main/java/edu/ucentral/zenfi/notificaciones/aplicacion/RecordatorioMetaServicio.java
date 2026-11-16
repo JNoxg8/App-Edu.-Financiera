@@ -35,9 +35,10 @@ public class RecordatorioMetaServicio {
         return repositorio.guardar(new RecordatorioMeta(metaAhorroId));
     }
 
-    public RecordatorioMeta consultar(Long metaAhorroId) {
+    /** Recordatorio de una meta DEL USUARIO (la de otro usuario responde 404). */
+    public RecordatorioMeta consultar(Long usuarioId, Long metaAhorroId) {
 
-        validarMeta(metaAhorroId);
+        validarMetaDe(usuarioId, metaAhorroId);
 
         return repositorio.buscarPorMetaAhorroId(metaAhorroId)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
@@ -55,13 +56,14 @@ public class RecordatorioMetaServicio {
      */
     @Transactional
     public RecordatorioMeta configurar(
+            Long usuarioId,
             Long metaAhorroId,
             String frecuencia,
             boolean activo) {
 
         validarFrecuencia(frecuencia);
 
-        RecordatorioMeta recordatorio = consultar(metaAhorroId);
+        RecordatorioMeta recordatorio = consultar(usuarioId, metaAhorroId);
 
         LocalDate hoy = LocalDate.now();
         LocalDate proximo = recordatorio.getProximoRecordatorio();
@@ -100,6 +102,16 @@ public class RecordatorioMetaServicio {
 
     private void validarMeta(Long metaAhorroId) {
         if (metaRepositorio.buscarPorId(metaAhorroId).isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontró la meta de ahorro");
+        }
+    }
+
+    private void validarMetaDe(Long usuarioId, Long metaAhorroId) {
+        boolean esSuya = metaRepositorio.buscarPorId(metaAhorroId)
+                .filter(meta -> meta.perteneceA(usuarioId))
+                .isPresent();
+        if (!esSuya) {
             throw new RecursoNoEncontradoException(
                     "No se encontró la meta de ahorro");
         }

@@ -1,5 +1,7 @@
 package edu.ucentral.zenfi.notificaciones;
 
+import org.junit.jupiter.api.BeforeEach;
+import edu.ucentral.zenfi.Sesiones;
 import edu.ucentral.zenfi.metasahorro.dominio.repositorio.MetaAhorroRepositorio;
 import edu.ucentral.zenfi.notificaciones.aplicacion.ProcesadorRecordatorios;
 import edu.ucentral.zenfi.notificaciones.dominio.repositorio.RecordatorioMetaRepositorio;
@@ -27,6 +29,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @QuarkusTest
 class RecordatorioNotificacionRecursoTest {
+
+    /** La API exige token: cada prueba usa la cuenta principal de pruebas. */
+    @BeforeEach
+    void iniciarSesion() {
+        Sesiones.usarCuentaPrincipal();
+    }
 
     private static final LocalDate HOY = LocalDate.now();
 

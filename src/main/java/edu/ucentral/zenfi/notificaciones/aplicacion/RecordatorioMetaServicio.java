@@ -1,6 +1,7 @@
 
 package edu.ucentral.zenfi.notificaciones.aplicacion;
 
+import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
 import edu.ucentral.zenfi.metasahorro.dominio.repositorio.MetaAhorroRepositorio;
 import edu.ucentral.zenfi.notificaciones.dominio.modelo.RecordatorioMeta;
@@ -24,9 +25,7 @@ public class RecordatorioMetaServicio {
     @Transactional
     public RecordatorioMeta crearParaMeta(Long metaAhorroId) {
 
-        if (metaRepositorio.buscarPorId(metaAhorroId).isEmpty()) {
-            throw new ReglaNegocioException("La meta de ahorro no existe");
-        }
+        validarMeta(metaAhorroId);
 
         if (repositorio.buscarPorMetaAhorroId(metaAhorroId).isPresent()) {
             throw new ReglaNegocioException(
@@ -37,36 +36,42 @@ public class RecordatorioMetaServicio {
     }
 
     public RecordatorioMeta consultar(Long metaAhorroId) {
+
+        validarMeta(metaAhorroId);
+
         return repositorio.buscarPorMetaAhorroId(metaAhorroId)
-                .orElseThrow(() -> new ReglaNegocioException(
+                .orElseThrow(() -> new RecursoNoEncontradoException(
                         "La meta no tiene un recordatorio configurado"));
     }
 
+    /**
+     * Cambia la frecuencia y el estado en una sola transaccion: si algo
+     * falla, no queda guardada solo la mitad del cambio.
+     *
+     * La proxima fecha solo se recalcula si cambia la frecuencia o si la
+     * que habia ya paso (por ejemplo, al reactivar un recordatorio que
+     * estuvo apagado). Asi, encender o apagar el recordatorio no corre la
+     * fecha que el usuario ya tenia.
+     */
     @Transactional
     public RecordatorioMeta configurar(
             Long metaAhorroId,
-            String frecuencia) {
-
-        RecordatorioMeta recordatorio = consultar(metaAhorroId);
+            String frecuencia,
+            boolean activo) {
 
         validarFrecuencia(frecuencia);
 
-        recordatorio.configurar(
-                frecuencia,
-                calcularProximaFecha(frecuencia)
-        );
-
-        repositorio.actualizar(recordatorio);
-
-        return recordatorio;
-    }
-
-    @Transactional
-    public RecordatorioMeta cambiarEstado(
-            Long metaAhorroId,
-            boolean activo) {
-
         RecordatorioMeta recordatorio = consultar(metaAhorroId);
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate proximo = recordatorio.getProximoRecordatorio();
+
+        if (!frecuencia.equals(recordatorio.getFrecuencia())
+                || !proximo.isAfter(hoy)) {
+            proximo = sumarPeriodo(hoy, frecuencia);
+        }
+
+        recordatorio.configurar(frecuencia, proximo);
 
         if (activo) {
             recordatorio.activar();
@@ -77,6 +82,27 @@ public class RecordatorioMetaServicio {
         repositorio.actualizar(recordatorio);
 
         return recordatorio;
+    }
+
+    @Transactional
+    public void avanzarProximoRecordatorio(RecordatorioMeta recordatorio) {
+
+        LocalDate siguiente = recordatorio.getProximoRecordatorio();
+        LocalDate hoy = LocalDate.now();
+
+        while (!siguiente.isAfter(hoy)) {
+            siguiente = sumarPeriodo(siguiente, recordatorio.getFrecuencia());
+        }
+
+        recordatorio.actualizarProximoRecordatorio(siguiente);
+        repositorio.actualizar(recordatorio);
+    }
+
+    private void validarMeta(Long metaAhorroId) {
+        if (metaRepositorio.buscarPorId(metaAhorroId).isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontró la meta de ahorro");
+        }
     }
 
     private void validarFrecuencia(String frecuencia) {
@@ -91,41 +117,13 @@ public class RecordatorioMetaServicio {
         }
     }
 
-    private LocalDate calcularProximaFecha(String frecuencia) {
-        LocalDate hoy = LocalDate.now();
-
+    private LocalDate sumarPeriodo(LocalDate fecha, String frecuencia) {
         return switch (frecuencia) {
-            case "DIARIA" -> hoy.plusDays(1);
-            case "SEMANAL" -> hoy.plusWeeks(1);
-            case "QUINCENAL" -> hoy.plusDays(15);
-            case "MENSUAL" -> hoy.plusMonths(1);
-            default -> throw new ReglaNegocioException(
-                    "Frecuencia no válida");
+            case "DIARIA" -> fecha.plusDays(1);
+            case "SEMANAL" -> fecha.plusWeeks(1);
+            case "QUINCENAL" -> fecha.plusDays(15);
+            case "MENSUAL" -> fecha.plusMonths(1);
+            default -> throw new ReglaNegocioException("Frecuencia no válida");
         };
     }
-
-
-
-    @Transactional
-    public void avanzarProximoRecordatorio(RecordatorioMeta recordatorio) {
-
-        LocalDate siguiente = recordatorio.getProximoRecordatorio();
-        LocalDate hoy = LocalDate.now();
-
-        while (!siguiente.isAfter(hoy)) {
-            siguiente = switch (recordatorio.getFrecuencia()) {
-                case "DIARIA" -> siguiente.plusDays(1);
-                case "SEMANAL" -> siguiente.plusWeeks(1);
-                case "QUINCENAL" -> siguiente.plusDays(15);
-                case "MENSUAL" -> siguiente.plusMonths(1);
-                default -> throw new ReglaNegocioException("Frecuencia no válida");
-            };
-        }
-
-        recordatorio.actualizarProximoRecordatorio(siguiente);
-        repositorio.actualizar(recordatorio);
-    }
-
-
 }
-

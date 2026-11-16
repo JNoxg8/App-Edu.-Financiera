@@ -1,7 +1,7 @@
 
 package edu.ucentral.zenfi.notificaciones.aplicacion;
 
-import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
+import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.notificaciones.dominio.modelo.Notificacion;
 import edu.ucentral.zenfi.notificaciones.dominio.repositorio.NotificacionRepositorio;
 
@@ -41,7 +41,7 @@ public class NotificacionServicio {
     public Notificacion marcarComoLeida(Long id) {
 
         Notificacion notificacion = repositorio.buscarPorId(id)
-                .orElseThrow(() -> new ReglaNegocioException(
+                .orElseThrow(() -> new RecursoNoEncontradoException(
                         "La notificación no existe"
                 ));
 

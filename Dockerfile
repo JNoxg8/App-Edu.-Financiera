@@ -32,4 +32,6 @@ RUN useradd --system zenfi
 USER zenfi
 
 EXPOSE 8862
-CMD ["java", "-XX:MaxRAMPercentage=75", "-jar", "quarkus-run.jar"]
+# Los contenedores corren en UTC: sin la zona de Colombia, desde las 7 p. m.
+# LocalDate.now() ya devolveria el dia siguiente (aportes, metas, presupuesto).
+CMD ["java", "-XX:MaxRAMPercentage=75", "-Duser.timezone=America/Bogota", "-jar", "quarkus-run.jar"]

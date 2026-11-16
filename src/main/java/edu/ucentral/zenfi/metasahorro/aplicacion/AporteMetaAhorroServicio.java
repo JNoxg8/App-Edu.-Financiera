@@ -45,16 +45,28 @@ public class AporteMetaAhorroServicio {
                     "El aporte debe ser mayor que cero");
         }
 
-        if ("COMPLETADA".equals(meta.getEstado())) {
+        // HU004: la fecha del aporte no puede quedar vacia
+        if (request.fecha() == null) {
+            throw new ReglaNegocioException(
+                    "La fecha del aporte es obligatoria");
+        }
+
+        LocalDate hoy = LocalDate.now();
+        meta.recalcularEstado(hoy);
+
+        if (MetaAhorro.COMPLETADA.equals(meta.getEstado())) {
             throw new ReglaNegocioException(
                     "No se pueden realizar aportes a una meta completada");
         }
 
-        LocalDate fecha = request.fecha() == null
-                ? LocalDate.now()
-                : request.fecha();
+        if (MetaAhorro.VENCIDA.equals(meta.getEstado())) {
+            throw new ReglaNegocioException(
+                    "No se pueden realizar aportes a una meta vencida");
+        }
 
-        if (fecha.isAfter(LocalDate.now())) {
+        LocalDate fecha = request.fecha();
+
+        if (fecha.isAfter(hoy)) {
             throw new ReglaNegocioException(
                     "La fecha del aporte no puede ser futura");
         }
@@ -80,10 +92,7 @@ public class AporteMetaAhorroServicio {
                 .add(request.monto());
 
         meta.setMontoAcumulado(nuevoAcumulado);
-
-        if (nuevoAcumulado.compareTo(meta.getMontoObjetivo()) >= 0) {
-            meta.setEstado("COMPLETADA");
-        }
+        meta.recalcularEstado(hoy);
 
         metaRepositorio.actualizar(meta);
 
@@ -123,12 +132,8 @@ public class AporteMetaAhorroServicio {
                 .subtract(aporte.getMonto());
 
         meta.setMontoAcumulado(nuevoAcumulado);
-
-        if (nuevoAcumulado.compareTo(meta.getMontoObjetivo()) >= 0) {
-            meta.setEstado("COMPLETADA");
-        } else {
-            meta.setEstado("ACTIVA");
-        }
+        // Una meta vencida sigue vencida aunque se borre un aporte
+        meta.recalcularEstado(LocalDate.now());
 
         aporteRepositorio.eliminar(aporteId);
         metaRepositorio.actualizar(meta);

@@ -8,6 +8,10 @@ import java.time.LocalDate;
 @Table(name = "metas_ahorro")
 public class MetaAhorro {
 
+    public static final String ACTIVA = "ACTIVA";
+    public static final String COMPLETADA = "COMPLETADA";
+    public static final String VENCIDA = "VENCIDA";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,7 +48,25 @@ public class MetaAhorro {
         this.fechaLimite = fechaLimite;
         this.montoInicial = montoInicial;
         this.montoAcumulado = montoInicial;
-        this.estado = "ACTIVA";
+        this.estado = ACTIVA;
+    }
+
+    /**
+     * HU004: COMPLETADA si lo ahorrado alcanza el objetivo; VENCIDA si ya
+     * paso la fecha limite sin alcanzarlo (el mismo dia limite todavia se
+     * puede aportar); si no, ACTIVA.
+     *
+     * Se recalcula en cada consulta porque el paso del tiempo vence una meta
+     * aunque nadie la modifique.
+     */
+    public void recalcularEstado(LocalDate hoy) {
+        if (montoAcumulado.compareTo(montoObjetivo) >= 0) {
+            estado = COMPLETADA;
+        } else if (hoy.isAfter(fechaLimite)) {
+            estado = VENCIDA;
+        } else {
+            estado = ACTIVA;
+        }
     }
 
     public Long getId() {

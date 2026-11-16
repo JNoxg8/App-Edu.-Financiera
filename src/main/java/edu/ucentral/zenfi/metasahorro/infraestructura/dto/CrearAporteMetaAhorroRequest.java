@@ -13,6 +13,7 @@ public record CrearAporteMetaAhorroRequest(
         @DecimalMin(value = "0.01", message = "El aporte debe ser mayor que cero")
         BigDecimal monto,
 
+        @NotNull(message = "La fecha del aporte es obligatoria")
         LocalDate fecha
 
 ) {

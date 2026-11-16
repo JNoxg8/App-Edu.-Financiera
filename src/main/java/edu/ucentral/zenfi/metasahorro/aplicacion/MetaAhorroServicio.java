@@ -2,6 +2,7 @@
 
 package edu.ucentral.zenfi.metasahorro.aplicacion;
 
+import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
 import edu.ucentral.zenfi.metasahorro.dominio.modelo.MetaAhorro;
 import edu.ucentral.zenfi.metasahorro.dominio.modelo.AporteMetaAhorro;
@@ -78,9 +79,18 @@ public class MetaAhorroServicio {
         return convertirRespuesta(guardada);
     }
 
+    /**
+     * Antes de responder se recalcula el estado de cada meta: las que ya
+     * pasaron su fecha limite quedan VENCIDA. Las entidades estan
+     * administradas por Hibernate, asi que el cambio se guarda solo al
+     * terminar la transaccion.
+     */
+    @Transactional
     public List<MetaAhorroResponse> listar() {
-        return repositorio.listar()
-                .stream()
+        LocalDate hoy = LocalDate.now();
+        List<MetaAhorro> metas = repositorio.listar();
+        metas.forEach(meta -> meta.recalcularEstado(hoy));
+        return metas.stream()
                 .map(this::convertirRespuesta)
                 .toList();
     }
@@ -90,7 +100,7 @@ public class MetaAhorroServicio {
 
         MetaAhorro meta = repositorio.buscarPorId(id)
                 .orElseThrow(() ->
-                        new ReglaNegocioException("La meta de ahorro no existe"));
+                        new RecursoNoEncontradoException("No se encontró la meta de ahorro"));
 
         List<AporteMetaAhorro> aportes =
                 aporteRepositorio.listarPorMetaAhorroId(id);

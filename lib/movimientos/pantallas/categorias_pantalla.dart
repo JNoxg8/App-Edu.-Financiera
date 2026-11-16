@@ -222,14 +222,18 @@ class _CategoriasPantallaState extends State<CategoriasPantalla> {
                           leading: Icon(
                             c.requiereDeuda
                                 ? Icons.account_balance_outlined
-                                : Icons.label_outline,
+                                : c.automatica
+                                    ? Icons.savings_outlined
+                                    : Icons.label_outline,
                             color: tema.colorScheme.primary,
                           ),
                           title: Text(c.nombre),
                           subtitle: Text(c.predefinida
                               ? (c.requiereDeuda
                                   ? 'Predefinida · Se enlaza con tus deudas'
-                                  : 'Predefinida')
+                                  : c.automatica
+                                      ? 'Predefinida · Se llena sola con tus aportes a metas'
+                                      : 'Predefinida')
                               : 'Personalizada'),
                           trailing: c.predefinida
                               ? Icon(Icons.lock_outline,

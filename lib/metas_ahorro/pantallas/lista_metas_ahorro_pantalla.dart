@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../comun/api_exception.dart';
+import '../../comun/cambios_financieros.dart';
 import '../modelo/meta_ahorro.dart';
 import '../servicio/meta_ahorro_servicio.dart';
 import 'formulario_meta_ahorro_pantalla.dart';
@@ -38,6 +39,19 @@ class _ListaMetasAhorroPantallaState extends State<ListaMetasAhorroPantalla> {
   void initState() {
     super.initState();
     _cargarMetas();
+    // Si se elimina el gasto de un aporte desde Movimientos, el ahorro de
+    // la meta cambia: la lista se recarga sola
+    CambiosFinancieros.escuchar.addListener(_alCambiar);
+  }
+
+  @override
+  void dispose() {
+    CambiosFinancieros.escuchar.removeListener(_alCambiar);
+    super.dispose();
+  }
+
+  void _alCambiar() {
+    if (mounted) _cargarMetas();
   }
 
   Future<void> _cargarMetas() async {

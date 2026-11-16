@@ -32,7 +32,10 @@ class FormularioMovimientoPantalla extends StatefulWidget {
   bool get esEdicion => movimiento != null;
 
   /// Abonos a deudas: monto, fecha, tipo y categoria los manda la deuda.
-  bool get soloDescripcion => movimiento?.abonoDeuda ?? false;
+  /// El gasto de un abono o de un aporte solo cambia su descripcion: el
+  /// monto, la fecha y la categoria los manda la deuda o la meta.
+  bool get soloDescripcion =>
+      (movimiento?.abonoDeuda ?? false) || (movimiento?.aporteMeta ?? false);
 
   @override
   State<FormularioMovimientoPantalla> createState() =>
@@ -100,7 +103,11 @@ class _FormularioMovimientoPantallaState
       final lista = await _servicio.listarCategorias(tipo: _tipo);
       if (!mounted) return;
       setState(() {
-        _categorias = lista;
+        // "Metas de ahorro" es automatica: sus gastos los crean los aportes,
+        // asi que no se ofrece... salvo que sea la del gasto que se edita
+        _categorias = lista
+            .where((c) => !c.automatica || c == _categoria)
+            .toList();
         // Si la categoria elegida no es del tipo actual, se descarta
         if (_categoria != null && !lista.contains(_categoria)) {
           _categoria = null;

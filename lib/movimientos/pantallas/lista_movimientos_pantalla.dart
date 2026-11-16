@@ -258,6 +258,8 @@ class _ListaMovimientosPantallaState extends State<ListaMovimientosPantalla> {
           // HU017: la confirmacion muestra tipo, monto y fecha y avisa que es permanente
           '${m.abonoDeuda ? 'Este gasto es un abono a una deuda. Al eliminarlo, el abono '
                     'también se elimina y el saldo de la deuda vuelve a subir.\n\n' : ''}'
+          '${m.aporteMeta ? 'Este gasto es un aporte a una meta de ahorro. Al eliminarlo, '
+                    'el aporte también se elimina y el ahorro de la meta baja.\n\n' : ''}'
           'Se eliminará el ${m.tipo.nombre.toLowerCase()} de '
           '${_formato.format(m.monto)} del ${_formatoFecha.format(m.fecha)}.\n\n'
           'Esta acción es permanente y no se puede deshacer.',
@@ -687,7 +689,9 @@ class _TarjetaMovimiento extends StatelessWidget {
           child: Icon(
             m.abonoDeuda
                 ? Icons.account_balance_outlined
-                : (m.esIngreso ? Icons.arrow_downward : Icons.arrow_upward),
+                : m.aporteMeta
+                    ? Icons.savings_outlined
+                    : (m.esIngreso ? Icons.arrow_downward : Icons.arrow_upward),
             color: tema.colorScheme.onPrimaryContainer,
           ),
         ),

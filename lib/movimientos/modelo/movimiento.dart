@@ -44,12 +44,17 @@ class Categoria {
   /// true solo en "Deudas": al elegirla hay que escoger la deuda a abonar.
   final bool requiereDeuda;
 
+  /// true solo en "Metas de ahorro": sus gastos se crean solos al aportar
+  /// a una meta, asi que no se ofrece para registrar un movimiento a mano.
+  final bool automatica;
+
   const Categoria({
     required this.id,
     required this.nombre,
     required this.tipo,
     required this.predefinida,
     required this.requiereDeuda,
+    this.automatica = false,
   });
 
   factory Categoria.desdeJson(Map<String, dynamic> json) => Categoria(
@@ -58,6 +63,7 @@ class Categoria {
         tipo: TipoMovimiento.desdeCodigo(json['tipo'] as String),
         predefinida: json['predefinida'] as bool,
         requiereDeuda: json['requiereDeuda'] as bool? ?? false,
+        automatica: json['automatica'] as bool? ?? false,
       );
 
   // Dos categorias son la misma si tienen el mismo id. Lo necesita el
@@ -83,6 +89,10 @@ class Movimiento {
   /// puede editar la descripcion.
   final bool abonoDeuda;
 
+  /// Igual que abonoDeuda, pero para un aporte a una meta de ahorro.
+  final int? metaAhorroId;
+  final bool aporteMeta;
+
   const Movimiento({
     required this.id,
     required this.tipo,
@@ -92,6 +102,8 @@ class Movimiento {
     required this.categoria,
     required this.deudaId,
     required this.abonoDeuda,
+    this.metaAhorroId,
+    this.aporteMeta = false,
   });
 
   factory Movimiento.desdeJson(Map<String, dynamic> json) => Movimiento(
@@ -104,6 +116,8 @@ class Movimiento {
             Categoria.desdeJson(json['categoria'] as Map<String, dynamic>),
         deudaId: json['deudaId'] as int?,
         abonoDeuda: json['abonoDeuda'] as bool? ?? false,
+        metaAhorroId: json['metaAhorroId'] as int?,
+        aporteMeta: json['aporteMeta'] as bool? ?? false,
       );
 
   bool get esIngreso => tipo == TipoMovimiento.ingreso;

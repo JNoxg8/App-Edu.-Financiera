@@ -10,6 +10,11 @@ package edu.ucentral.zenfi.movimientos.dominio.modelo;
  * DEUDAS es especial: es el puente con el modulo de deudas. Todo abono
  * a una deuda se registra automaticamente como un gasto en esta
  * categoria, porque pagar una deuda es dinero que sale del bolsillo.
+ *
+ * METAS_AHORRO funciona igual con el modulo de metas: todo aporte se
+ * registra como un gasto aqui, porque el dinero apartado para ahorrar ya
+ * no esta disponible para gastar. Las dos son automaticas: el usuario no
+ * puede registrar a mano un gasto en ellas desde Movimientos.
  */
 public enum CategoriaPredefinida {
 
@@ -22,6 +27,7 @@ public enum CategoriaPredefinida {
     SALUD("Salud", TipoMovimiento.GASTO),
     EDUCACION("Educación", TipoMovimiento.GASTO),
     DEUDAS("Deudas", TipoMovimiento.GASTO),
+    METAS_AHORRO("Metas de ahorro", TipoMovimiento.GASTO),
     OTROS_GASTOS("Otros", TipoMovimiento.GASTO),
 
     // ---------------- Ingresos ----------------

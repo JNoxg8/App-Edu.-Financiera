@@ -20,6 +20,8 @@ public interface MovimientoRepositorio {
 
     Optional<Movimiento> buscarPorAbono(Long abonoId);
 
+    Optional<Movimiento> buscarPorAporte(Long aporteId);
+
     /** Filtra, busca y ordena segun el filtro. */
     List<Movimiento> listar(FiltroMovimientos filtro);
 
@@ -29,6 +31,8 @@ public interface MovimientoRepositorio {
     boolean eliminar(Long id);
 
     boolean eliminarPorAbono(Long abonoId);
+
+    boolean eliminarPorAporte(Long aporteId);
 
     /** Quita la referencia a la deuda de todos sus gastos. Devuelve cuantos cambio. */
     int desvincularDeuda(Long deudaId);

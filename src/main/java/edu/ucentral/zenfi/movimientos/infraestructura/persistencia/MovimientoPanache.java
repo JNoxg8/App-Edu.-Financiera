@@ -32,6 +32,8 @@ public class MovimientoPanache implements MovimientoRepositorio, PanacheReposito
         entidad.usuarioId = movimiento.getUsuarioId();
         entidad.deudaId = movimiento.getDeudaId();
         entidad.abonoId = movimiento.getAbonoId();
+        entidad.metaAhorroId = movimiento.getMetaAhorroId();
+        entidad.aporteId = movimiento.getAporteId();
         persist(entidad);
         return aDominio(entidad);
     }
@@ -44,7 +46,7 @@ public class MovimientoPanache implements MovimientoRepositorio, PanacheReposito
             return null;
         }
         copiar(movimiento, entidad);
-        // usuario, deuda y abono no se editan
+        // usuario, deuda, abono, meta y aporte no se editan
         return aDominio(entidad);
     }
 
@@ -56,6 +58,11 @@ public class MovimientoPanache implements MovimientoRepositorio, PanacheReposito
     @Override
     public Optional<Movimiento> buscarPorAbono(Long abonoId) {
         return find("abonoId", abonoId).firstResultOptional().map(this::aDominio);
+    }
+
+    @Override
+    public Optional<Movimiento> buscarPorAporte(Long aporteId) {
+        return find("aporteId", aporteId).firstResultOptional().map(this::aDominio);
     }
 
     /**
@@ -116,6 +123,12 @@ public class MovimientoPanache implements MovimientoRepositorio, PanacheReposito
 
     @Override
     @Transactional
+    public boolean eliminarPorAporte(Long aporteId) {
+        return delete("aporteId", aporteId) > 0;
+    }
+
+    @Override
+    @Transactional
     public int desvincularDeuda(Long deudaId) {
         return update("deudaId = null, abonoId = null where deudaId = ?1", deudaId);
     }
@@ -166,7 +179,9 @@ public class MovimientoPanache implements MovimientoRepositorio, PanacheReposito
                 categorias.aDominio(e.categoria),
                 e.usuarioId,
                 e.deudaId,
-                e.abonoId
+                e.abonoId,
+                e.metaAhorroId,
+                e.aporteId
         );
     }
 }

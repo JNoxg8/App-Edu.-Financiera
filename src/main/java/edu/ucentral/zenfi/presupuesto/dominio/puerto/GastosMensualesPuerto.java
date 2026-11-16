@@ -15,7 +15,8 @@ public interface GastosMensualesPuerto {
 
     /**
      * Suma de los movimientos de tipo gasto del usuario en el mes.
-     * Incluye los abonos a deudas, que movimientos registra como gastos.
+     * Incluye los abonos a deudas y los aportes a metas de ahorro, que
+     * movimientos registra como gastos.
      */
     BigDecimal totalGastos(Long usuarioId, YearMonth mes);
 }

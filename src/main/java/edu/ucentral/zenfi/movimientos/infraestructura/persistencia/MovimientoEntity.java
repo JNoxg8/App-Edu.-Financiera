@@ -59,4 +59,11 @@ public class MovimientoEntity extends PanacheEntity {
     /** Unico: un abono genera exactamente un gasto. */
     @Column(name = "abono_id", unique = true)
     public Long abonoId;
+
+    @Column(name = "meta_ahorro_id")
+    public Long metaAhorroId;
+
+    /** Unico: un aporte a una meta genera exactamente un gasto. */
+    @Column(name = "aporte_id", unique = true)
+    public Long aporteId;
 }

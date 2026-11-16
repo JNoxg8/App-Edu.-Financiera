@@ -3,6 +3,8 @@ package edu.ucentral.zenfi.metasahorro.aplicacion;
 
 import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
+import edu.ucentral.zenfi.metasahorro.dominio.evento.AporteEliminado;
+import edu.ucentral.zenfi.metasahorro.dominio.evento.AporteRegistrado;
 import edu.ucentral.zenfi.metasahorro.dominio.modelo.AporteMetaAhorro;
 import edu.ucentral.zenfi.metasahorro.dominio.modelo.MetaAhorro;
 import edu.ucentral.zenfi.metasahorro.dominio.repositorio.AporteMetaAhorroRepositorio;
@@ -10,6 +12,7 @@ import edu.ucentral.zenfi.metasahorro.dominio.repositorio.MetaAhorroRepositorio;
 import edu.ucentral.zenfi.metasahorro.infraestructura.dto.AporteMetaAhorroResponse;
 import edu.ucentral.zenfi.metasahorro.infraestructura.dto.CrearAporteMetaAhorroRequest;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
@@ -17,14 +20,32 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Aportes a metas de ahorro (HU004).
+ *
+ * Cruce con movimientos: igual que un abono a una deuda, cada aporte se
+ * publica como evento (AporteRegistrado / AporteEliminado) y movimientos
+ * lo anota como un gasto en la categoria "Metas de ahorro". Asi el aporte
+ * descuenta del presupuesto del mes (HU011), aparece en el reporte
+ * (HU025) y en el panel (HU015) sin que esos modulos conozcan las metas.
+ */
 @ApplicationScoped
 public class AporteMetaAhorroServicio {
+
+    /** Sin login (RQ-01/RQ-02 fuera de alcance): mismo usuario fijo que el resto. */
+    static final Long USUARIO_ACTUAL = 1L;
 
     @Inject
     AporteMetaAhorroRepositorio aporteRepositorio;
 
     @Inject
     MetaAhorroRepositorio metaRepositorio;
+
+    @Inject
+    Event<AporteRegistrado> aporteRegistrado;
+
+    @Inject
+    Event<AporteEliminado> aporteEliminado;
 
     @Transactional
     public AporteMetaAhorroResponse registrar(
@@ -96,6 +117,11 @@ public class AporteMetaAhorroServicio {
 
         metaRepositorio.actualizar(meta);
 
+        // Sincrono y en la misma transaccion: si no se puede crear el gasto,
+        // el aporte tampoco queda guardado
+        aporteRegistrado.fire(new AporteRegistrado(metaAhorroId, guardado.getId(),
+                USUARIO_ACTUAL, meta.getNombre(), guardado.getMonto(), guardado.getFecha()));
+
         return aRespuesta(guardado);
     }
 
@@ -137,6 +163,9 @@ public class AporteMetaAhorroServicio {
 
         aporteRepositorio.eliminar(aporteId);
         metaRepositorio.actualizar(meta);
+
+        // Movimientos borra el gasto del aporte: vuelve a estar disponible
+        aporteEliminado.fire(new AporteEliminado(metaAhorroId, aporteId));
     }
 
     private AporteMetaAhorroResponse aRespuesta(AporteMetaAhorro aporte) {

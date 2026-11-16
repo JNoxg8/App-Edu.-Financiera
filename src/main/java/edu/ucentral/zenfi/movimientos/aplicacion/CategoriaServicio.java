@@ -46,6 +46,13 @@ public class CategoriaServicio {
                         "No se encontro la categoria predefinida Deudas"));
     }
 
+    /** La categoria puente con el modulo de metas de ahorro. */
+    public Categoria obtenerMetasAhorro() {
+        return repositorio.buscarPredefinida(CategoriaPredefinida.METAS_AHORRO)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No se encontro la categoria predefinida Metas de ahorro"));
+    }
+
     /** HU009: crear una categoria personalizada, con nombre no vacio ni repetido. */
     @Transactional
     public Categoria crear(Long usuarioId, String nombre, TipoMovimiento tipo) {

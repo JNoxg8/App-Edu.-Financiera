@@ -24,6 +24,7 @@ class MovimientoTest {
     private final Categoria transporte = new Categoria(1L, "Transporte", TipoMovimiento.GASTO, true, null);
     private final Categoria salario = new Categoria(2L, "Salario", TipoMovimiento.INGRESO, true, null);
     private final Categoria deudas = new Categoria(3L, "Deudas", TipoMovimiento.GASTO, true, null);
+    private final Categoria metas = new Categoria(4L, "Metas de ahorro", TipoMovimiento.GASTO, true, null);
 
     private Movimiento gasto(String monto) {
         return Movimiento.registrar(TipoMovimiento.GASTO, new BigDecimal(monto), HOY,
@@ -160,5 +161,64 @@ class MovimientoTest {
         assertFalse(m.esAbonoDeDeuda());
         assertNull(m.getDeudaId());
         assertEquals(new BigDecimal("50000.00"), m.getMonto());
+    }
+
+    // ------------------------------------------------------------------
+    // Aportes a metas de ahorro: funcionan igual que los abonos a deudas
+    // ------------------------------------------------------------------
+
+    private Movimiento aporte() {
+        return Movimiento.desdeAporte(1L, 5L, 77L, "Moto", new BigDecimal("500000"), HOY, metas);
+    }
+
+    @Test
+    @DisplayName("Un aporte se registra como gasto en Metas de ahorro, vinculado a la meta")
+    void gastoDeAporte() {
+        Movimiento m = aporte();
+
+        assertEquals(TipoMovimiento.GASTO, m.getTipo());
+        assertEquals(new BigDecimal("500000.00"), m.getMonto());
+        assertEquals("Aporte a meta: Moto", m.getDescripcion());
+        assertTrue(m.esAporteAMeta());
+        assertFalse(m.esAbonoDeDeuda());
+        assertEquals(5L, m.getMetaAhorroId());
+        assertEquals(77L, m.getAporteId());
+    }
+
+    @Test
+    @DisplayName("El gasto de un aporte solo puede ir en la categoria Metas de ahorro")
+    void aporteFueraDeSuCategoria() {
+        assertThrows(IllegalArgumentException.class, () -> Movimiento.desdeAporte(
+                1L, 5L, 77L, "Moto", new BigDecimal("500000"), HOY, transporte));
+    }
+
+    @Test
+    @DisplayName("No se puede registrar a mano un gasto en Metas de ahorro")
+    void metasEsAutomatica() {
+        assertThrows(ReglaNegocioException.class, () -> Movimiento.registrar(
+                TipoMovimiento.GASTO, new BigDecimal("1000"), HOY, null, metas, 1L));
+    }
+
+    @Test
+    @DisplayName("En el gasto de un aporte solo se cambia la descripcion")
+    void editarAporte() {
+        Movimiento m = aporte();
+
+        m.actualizar(TipoMovimiento.GASTO, new BigDecimal("500000"), HOY, "Ahorro de noviembre", metas);
+        assertEquals("Ahorro de noviembre", m.getDescripcion());
+
+        assertThrows(ReglaNegocioException.class, () -> m.actualizar(
+                TipoMovimiento.GASTO, new BigDecimal("1"), HOY, null, metas));
+        assertThrows(ReglaNegocioException.class, () -> m.actualizar(
+                TipoMovimiento.GASTO, new BigDecimal("500000"), HOY, null, transporte));
+    }
+
+    @Test
+    @DisplayName("Un gasto normal no se puede pasar a la categoria Metas de ahorro")
+    void noPasarAMetas() {
+        Movimiento m = gasto("2500");
+
+        assertThrows(ReglaNegocioException.class, () -> m.actualizar(
+                TipoMovimiento.GASTO, new BigDecimal("2500"), HOY, "Bus", metas));
     }
 }

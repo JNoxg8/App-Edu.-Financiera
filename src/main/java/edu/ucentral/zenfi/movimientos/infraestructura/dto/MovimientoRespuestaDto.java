@@ -11,6 +11,7 @@ import java.time.LocalDate;
  *
  * abonoDeuda = true le indica a la app que ese gasto viene de una deuda:
  * debe bloquear monto, fecha y categoria en el formulario de edicion.
+ * aporteMeta = true significa lo mismo para un aporte a una meta de ahorro.
  */
 public record MovimientoRespuestaDto(
         Long id,
@@ -20,7 +21,9 @@ public record MovimientoRespuestaDto(
         String descripcion,
         CategoriaRespuestaDto categoria,
         Long deudaId,
-        boolean abonoDeuda
+        boolean abonoDeuda,
+        Long metaAhorroId,
+        boolean aporteMeta
 ) {
     public static MovimientoRespuestaDto desde(Movimiento m) {
         return new MovimientoRespuestaDto(
@@ -31,6 +34,8 @@ public record MovimientoRespuestaDto(
                 m.getDescripcion(),
                 CategoriaRespuestaDto.desde(m.getCategoria()),
                 m.getDeudaId(),
-                m.esAbonoDeDeuda());
+                m.esAbonoDeDeuda(),
+                m.getMetaAhorroId(),
+                m.esAporteAMeta());
     }
 }

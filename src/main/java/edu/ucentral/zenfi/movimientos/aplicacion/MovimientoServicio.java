@@ -7,6 +7,7 @@ import edu.ucentral.zenfi.movimientos.dominio.modelo.FiltroMovimientos;
 import edu.ucentral.zenfi.movimientos.dominio.modelo.Movimiento;
 import edu.ucentral.zenfi.movimientos.dominio.modelo.ResumenMovimientos;
 import edu.ucentral.zenfi.movimientos.dominio.modelo.TipoMovimiento;
+import edu.ucentral.zenfi.movimientos.dominio.puerto.AporteMetaPuerto;
 import edu.ucentral.zenfi.movimientos.dominio.puerto.PagoDeudaPuerto;
 import edu.ucentral.zenfi.movimientos.dominio.repositorio.MovimientoRepositorio;
 import io.quarkus.logging.Log;
@@ -40,6 +41,9 @@ public class MovimientoServicio {
 
     @Inject
     PagoDeudaPuerto pagoDeuda;
+
+    @Inject
+    AporteMetaPuerto aporteMeta;
 
     /**
      * HU009: registrar un ingreso o gasto.
@@ -110,7 +114,9 @@ public class MovimientoServicio {
 
     /**
      * Si el gasto es un abono, se revierte el abono en la deuda (su saldo
-     * vuelve a subir) y el evento AbonoEliminado borra el gasto.
+     * vuelve a subir) y el evento AbonoEliminado borra el gasto. Si es un
+     * aporte, se revierte el aporte en la meta (su ahorro baja) y el evento
+     * AporteEliminado borra el gasto.
      */
     @Transactional
     public void eliminar(Long usuarioId, Long id) {
@@ -118,6 +124,10 @@ public class MovimientoServicio {
 
         if (movimiento.esAbonoDeDeuda()) {
             pagoDeuda.revertirAbono(movimiento.getDeudaId(), movimiento.getAbonoId());
+            return;
+        }
+        if (movimiento.esAporteAMeta()) {
+            aporteMeta.revertirAporte(movimiento.getMetaAhorroId(), movimiento.getAporteId());
             return;
         }
         repositorio.eliminar(id);
@@ -140,6 +150,25 @@ public class MovimientoServicio {
     @Transactional
     public void eliminarGastoDeAbono(Long abonoId) {
         repositorio.eliminarPorAbono(abonoId);
+    }
+
+    // ------------------------------------------------------------------
+    // Reacciones a los eventos del modulo de metas de ahorro
+    // (las invoca EventosMetaObservador)
+    // ------------------------------------------------------------------
+
+    @Transactional
+    public Movimiento registrarGastoDeAporte(Long usuarioId, Long metaAhorroId, Long aporteId,
+                                             String nombreMeta, BigDecimal monto, LocalDate fecha) {
+        Movimiento gasto = Movimiento.desdeAporte(usuarioId, metaAhorroId, aporteId, nombreMeta,
+                monto, fecha, categorias.obtenerMetasAhorro());
+        Log.debugf("Aporte %d de la meta %d registrado como gasto", aporteId, metaAhorroId);
+        return repositorio.crear(gasto);
+    }
+
+    @Transactional
+    public void eliminarGastoDeAporte(Long aporteId) {
+        repositorio.eliminarPorAporte(aporteId);
     }
 
     /** La deuda se elimino: sus gastos se conservan pero sin referencia. */

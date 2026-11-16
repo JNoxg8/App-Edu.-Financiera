@@ -68,6 +68,13 @@ public class Categoria {
                 && normalizar(nombre).equals(normalizar(CategoriaPredefinida.DEUDAS.getNombre()));
     }
 
+    /** La categoria "Metas de ahorro" conecta este modulo con el de metas. */
+    public boolean esDeMetasAhorro() {
+        return predefinida
+                && tipo == CategoriaPredefinida.METAS_AHORRO.getTipo()
+                && normalizar(nombre).equals(normalizar(CategoriaPredefinida.METAS_AHORRO.getNombre()));
+    }
+
     /** Un usuario puede usar las predefinidas y las suyas, nunca las de otro. */
     public boolean disponiblePara(Long usuario) {
         return predefinida || (usuarioId != null && usuarioId.equals(usuario));

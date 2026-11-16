@@ -4,6 +4,7 @@ package edu.ucentral.zenfi.metasahorro.aplicacion;
 
 import edu.ucentral.zenfi.common.excepcion.RecursoNoEncontradoException;
 import edu.ucentral.zenfi.common.excepcion.ReglaNegocioException;
+import edu.ucentral.zenfi.metasahorro.dominio.evento.AporteEliminado;
 import edu.ucentral.zenfi.metasahorro.dominio.modelo.MetaAhorro;
 import edu.ucentral.zenfi.metasahorro.dominio.modelo.AporteMetaAhorro;
 import edu.ucentral.zenfi.metasahorro.dominio.repositorio.MetaAhorroRepositorio;
@@ -15,6 +16,7 @@ import edu.ucentral.zenfi.notificaciones.dominio.repositorio.RecordatorioMetaRep
 import edu.ucentral.zenfi.notificaciones.dominio.repositorio.NotificacionRepositorio;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
@@ -40,6 +42,9 @@ public class MetaAhorroServicio {
     @Inject
     NotificacionRepositorio notificacionRepositorio;
 
+    @Inject
+    Event<AporteEliminado> aporteEliminado;
+
     @Transactional
     public MetaAhorroResponse crear(CrearMetaAhorroRequest request) {
 
@@ -62,6 +67,9 @@ public class MetaAhorroServicio {
 
         MetaAhorro guardada = repositorio.guardar(metaAhorro);
 
+        // El monto inicial es dinero que el usuario YA tenia ahorrado: queda
+        // en el historial de aportes, pero no publica AporteRegistrado, asi
+        // que no cuenta como gasto del mes (no sale de su presupuesto).
         if (request.montoInicial().compareTo(BigDecimal.ZERO) > 0) {
 
             AporteMetaAhorro aporteInicial = new AporteMetaAhorro(
@@ -105,8 +113,12 @@ public class MetaAhorroServicio {
         List<AporteMetaAhorro> aportes =
                 aporteRepositorio.listarPorMetaAhorroId(id);
 
+        // HU021: se borran todos los aportes. Cada uno avisa a movimientos
+        // para que borre su gasto: el dinero de una meta eliminada vuelve
+        // a estar disponible (a diferencia de un abono, que si se pago).
         for (AporteMetaAhorro aporte : aportes) {
             aporteRepositorio.eliminar(aporte.getId());
+            aporteEliminado.fire(new AporteEliminado(id, aporte.getId()));
         }
 
         recordatorioRepositorio.eliminarPorMetaAhorroId(id);

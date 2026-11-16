@@ -13,6 +13,9 @@ import java.time.LocalDate;
  * categoria "Deudas". Esos movimientos guardan deudaId y abonoId, y
  * sus datos (monto, fecha, categoria) los manda la deuda: aqui solo se
  * puede cambiar la descripcion.
+ *
+ * Cruce con metas de ahorro: igual, cada aporte a una meta es un gasto en
+ * la categoria "Metas de ahorro" que guarda metaAhorroId y aporteId.
  */
 public class Movimiento {
 
@@ -33,10 +36,16 @@ public class Movimiento {
     /** Abono de la deuda que origino este gasto. */
     private Long abonoId;
 
+    /** Meta de ahorro a la que corresponde este gasto, si es un aporte. */
+    private Long metaAhorroId;
+
+    /** Aporte a la meta que origino este gasto. */
+    private Long aporteId;
+
     /** Reconstruye un movimiento ya guardado (lo usa el adaptador de persistencia). */
     public Movimiento(Long id, TipoMovimiento tipo, BigDecimal monto, LocalDate fecha,
                       String descripcion, Categoria categoria, Long usuarioId,
-                      Long deudaId, Long abonoId) {
+                      Long deudaId, Long abonoId, Long metaAhorroId, Long aporteId) {
         this.id = id;
         this.tipo = tipo;
         this.monto = monto;
@@ -46,6 +55,16 @@ public class Movimiento {
         this.usuarioId = usuarioId;
         this.deudaId = deudaId;
         this.abonoId = abonoId;
+        this.metaAhorroId = metaAhorroId;
+        this.aporteId = aporteId;
+    }
+
+    /** Movimiento sin vinculo con una meta de ahorro. */
+    public Movimiento(Long id, TipoMovimiento tipo, BigDecimal monto, LocalDate fecha,
+                      String descripcion, Categoria categoria, Long usuarioId,
+                      Long deudaId, Long abonoId) {
+        this(id, tipo, monto, fecha, descripcion, categoria, usuarioId,
+                deudaId, abonoId, null, null);
     }
 
     // ------------------------------------------------------------------
@@ -67,6 +86,11 @@ public class Movimiento {
             throw new ReglaNegocioException(
                     "Un gasto en la categoria Deudas debe indicar la deuda a la que se abona");
         }
+        if (categoria.esDeMetasAhorro()) {
+            throw new ReglaNegocioException(
+                    "Los gastos en Metas de ahorro se crean solos al registrar un aporte; "
+                            + "registrelo desde la meta correspondiente");
+        }
         return new Movimiento(null, tipo, escalar(monto), fecha, limpiarDescripcion(descripcion),
                 categoria, usuarioId, null, null);
     }
@@ -87,6 +111,23 @@ public class Movimiento {
                 categoriaDeudas, usuarioId, deudaId, abonoId);
     }
 
+    /**
+     * Crea el gasto que refleja un aporte a una meta de ahorro. Lo dispara
+     * el evento AporteRegistrado del modulo de metas.
+     */
+    public static Movimiento desdeAporte(Long usuarioId, Long metaAhorroId, Long aporteId,
+                                         String nombreMeta, BigDecimal monto, LocalDate fecha,
+                                         Categoria categoriaMetas) {
+        if (categoriaMetas == null || !categoriaMetas.esDeMetasAhorro()) {
+            throw new IllegalArgumentException(
+                    "El aporte debe registrarse en la categoria Metas de ahorro");
+        }
+        validar(TipoMovimiento.GASTO, monto, fecha, categoriaMetas);
+        return new Movimiento(null, TipoMovimiento.GASTO, escalar(monto), fecha,
+                limpiarDescripcion("Aporte a meta: " + nombreMeta),
+                categoriaMetas, usuarioId, null, null, metaAhorroId, aporteId);
+    }
+
     // ------------------------------------------------------------------
     // Edicion
     // ------------------------------------------------------------------
@@ -99,16 +140,18 @@ public class Movimiento {
      */
     public void actualizar(TipoMovimiento nuevoTipo, BigDecimal nuevoMonto, LocalDate nuevaFecha,
                            String nuevaDescripcion, Categoria nuevaCategoria) {
-        if (esAbonoDeDeuda()) {
-            boolean cambiaDatosDeLaDeuda = nuevoTipo != tipo
+        if (esAbonoDeDeuda() || esAporteAMeta()) {
+            boolean cambiaDatosDeOrigen = nuevoTipo != tipo
                     || nuevoMonto == null || nuevoMonto.compareTo(monto) != 0
                     || !fecha.equals(nuevaFecha)
                     || !categoria.esMismaQue(nuevaCategoria);
-            if (cambiaDatosDeLaDeuda) {
+            if (cambiaDatosDeOrigen) {
+                String origen = esAbonoDeDeuda() ? "un abono a una deuda" : "un aporte a una meta";
+                String accion = esAbonoDeDeuda() ? "registre el abono" : "registre el aporte";
                 throw new ReglaNegocioException(
-                        "Este gasto es un abono a una deuda: solo se puede cambiar la descripcion. "
+                        "Este gasto es " + origen + ": solo se puede cambiar la descripcion. "
                                 + "Para corregir el monto o la fecha, elimine el movimiento y "
-                                + "registre el abono de nuevo");
+                                + accion + " de nuevo");
             }
             cambiarDescripcion(nuevaDescripcion);
             return;
@@ -119,6 +162,11 @@ public class Movimiento {
             throw new ReglaNegocioException(
                     "No se puede pasar un movimiento a la categoria Deudas; "
                             + "registre el abono desde la deuda correspondiente");
+        }
+        if (nuevaCategoria.esDeMetasAhorro() && !nuevaCategoria.esMismaQue(categoria)) {
+            throw new ReglaNegocioException(
+                    "No se puede pasar un movimiento a la categoria Metas de ahorro; "
+                            + "registre el aporte desde la meta correspondiente");
         }
 
         this.tipo = nuevoTipo;
@@ -143,6 +191,10 @@ public class Movimiento {
 
     public boolean esAbonoDeDeuda() {
         return abonoId != null;
+    }
+
+    public boolean esAporteAMeta() {
+        return aporteId != null;
     }
 
     public boolean esIngreso() {
@@ -237,5 +289,13 @@ public class Movimiento {
 
     public Long getAbonoId() {
         return abonoId;
+    }
+
+    public Long getMetaAhorroId() {
+        return metaAhorroId;
+    }
+
+    public Long getAporteId() {
+        return aporteId;
     }
 }

@@ -28,12 +28,20 @@ class MenuLateral extends StatelessWidget {
   final ValueChanged<int> onSeleccionar;
   final String nombreUsuario;
 
+  /// Correo de la cuenta, que se muestra bajo el saludo.
+  final String? correo;
+
+  /// Si se indica, aparece "Cerrar sesion" al final del menu.
+  final VoidCallback? onCerrarSesion;
+
   const MenuLateral({
     super.key,
     required this.modulos,
     required this.seleccionado,
     required this.onSeleccionar,
     required this.nombreUsuario,
+    this.correo,
+    this.onCerrarSesion,
   });
 
   @override
@@ -99,6 +107,22 @@ class MenuLateral extends StatelessWidget {
             icon: Icon(modulos[i].icono),
             selectedIcon: Icon(modulos[i].iconoSeleccionado),
             label: Text(modulos[i].titulo),
+          ),
+        ],
+        if (onCerrarSesion != null) ...[
+          const Divider(indent: 28, endIndent: 28),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: ColoresZenfi.negativo),
+              title: const Text('Cerrar sesión'),
+              subtitle: correo == null ? null : Text(correo!, overflow: TextOverflow.ellipsis),
+              shape: const StadiumBorder(),
+              onTap: () {
+                Navigator.of(context).pop();
+                onCerrarSesion!();
+              },
+            ),
           ),
         ],
       ],

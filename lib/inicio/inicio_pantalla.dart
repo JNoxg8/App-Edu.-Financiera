@@ -1,6 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../autenticacion/servicio/autenticacion_servicio.dart';
 import '../comun/menu_lateral.dart';
+import '../comun/sesion.dart';
 import '../deudas/pantallas/lista_deudas_pantalla.dart';
 import '../movimientos/pantallas/lista_movimientos_pantalla.dart';
 import '../metas_ahorro/pantallas/lista_metas_ahorro_pantalla.dart';
@@ -73,6 +75,22 @@ class _InicioPantallaState extends State<InicioPantalla> {
 
   int _indice = 0;
 
+  /// Pide confirmacion; al cerrar, la pantalla de arranque vuelve al acceso.
+  Future<void> _cerrarSesion() async {
+    final confirma = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('Tendrás que volver a escribir tu correo y contraseña para entrar.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Cerrar sesión')),
+        ],
+      ),
+    );
+    if (confirma == true) await AutenticacionServicio().cerrarSesion();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +98,9 @@ class _InicioPantallaState extends State<InicioPantalla> {
         modulos: _modulos,
         seleccionado: _indice,
         nombreUsuario: widget.perfil.nombre,
+        correo: Sesion.correo,
         onSeleccionar: (i) => setState(() => _indice = i),
+        onCerrarSesion: _cerrarSesion,
       ),
       body: IndexedStack(
         index: _indice,

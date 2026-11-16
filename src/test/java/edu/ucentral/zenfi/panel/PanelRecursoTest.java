@@ -87,6 +87,26 @@ class PanelRecursoTest {
     }
 
     @Test
+    @DisplayName("El desglose por categoria suma los gastos del mes, y el presupuesto usa ese mismo total")
+    void desgloseCuadra() {
+        movimiento("GASTO", "25000");
+
+        var p = panel();
+        BigDecimal gastosMes = numero(p, "gastosMesActual");
+        List<Object> totales = p.path("gastosMesPorCategoria.total");
+        BigDecimal suma = totales.stream()
+                .map(n -> new BigDecimal(n.toString()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        assertEquals(0, gastosMes.compareTo(suma));
+
+        // Otras pruebas pueden haber creado el presupuesto de este mes (H2 compartida)
+        Object presupuesto = p.path("presupuesto");
+        if (presupuesto != null) {
+            assertEquals(0, gastosMes.compareTo(numero(p, "presupuesto.totalGastado")));
+        }
+    }
+
+    @Test
     @DisplayName("Una meta activa aparece con su avance y desaparece al cumplirse")
     void metaActiva() {
         int id = given()

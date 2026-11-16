@@ -2,12 +2,14 @@ package edu.ucentral.zenfi.panel.infraestructura.movimientos;
 
 import edu.ucentral.zenfi.movimientos.aplicacion.MovimientoServicio;
 import edu.ucentral.zenfi.movimientos.dominio.modelo.ResumenMovimientos;
+import edu.ucentral.zenfi.panel.dominio.modelo.GastoCategoria;
 import edu.ucentral.zenfi.panel.dominio.modelo.TotalesMovimientos;
 import edu.ucentral.zenfi.panel.dominio.puerto.MovimientosPanelPuerto;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -27,6 +29,10 @@ public class MovimientosPanelAdaptador implements MovimientosPanelPuerto {
                         resumen.getGastosPorCategoria().stream())
                 .mapToInt(ResumenMovimientos.TotalCategoria::cantidadMovimientos)
                 .sum();
-        return new TotalesMovimientos(resumen.getTotalIngresos(), resumen.getTotalGastos(), cantidad);
+        List<GastoCategoria> porCategoria = resumen.getGastosPorCategoria().stream()
+                .map(t -> new GastoCategoria(t.categoria(), t.total(), t.porcentaje()))
+                .toList();
+        return new TotalesMovimientos(resumen.getTotalIngresos(), resumen.getTotalGastos(),
+                cantidad, porCategoria);
     }
 }

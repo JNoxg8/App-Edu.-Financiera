@@ -5,6 +5,7 @@ import '../../comun/cambios_financieros.dart';
 import '../modelo/deuda.dart';
 import '../servicio/deuda_servicio.dart';
 import 'formulario_deuda_pantalla.dart';
+import '../../comun/menu_lateral.dart';
 
 final formatoMoneda =
     NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
@@ -62,6 +63,8 @@ class _ListaDeudasPantallaState extends State<ListaDeudasPantalla> {
     if (guardada == true) {
       _mostrarMensaje(deuda == null ? 'Deuda registrada' : 'Deuda actualizada');
       _recargar();
+      // HU015: el panel principal muestra las deudas pendientes
+      CambiosFinancieros.notificar();
     }
   }
 
@@ -136,7 +139,12 @@ class _ListaDeudasPantallaState extends State<ListaDeudasPantalla> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar deuda'),
-        content: Text('Se eliminara la deuda con ${deuda.acreedor}.'),
+        // HU023: la confirmacion avisa que se borran los abonos y que es permanente
+        content: Text(
+          'Se eliminará la deuda con ${deuda.acreedor}'
+          '${deuda.abonos.isEmpty ? '' : ' y sus ${deuda.abonos.length} abono(s)'}.\n\n'
+          'Esta acción es permanente y no se puede deshacer.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -174,6 +182,7 @@ class _ListaDeudasPantallaState extends State<ListaDeudasPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const BotonMenu(),
         title: const Text('Mis deudas'),
         actions: [
           IconButton(

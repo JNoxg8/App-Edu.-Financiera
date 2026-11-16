@@ -9,6 +9,7 @@ import '../../reporte/widgets/desglose_categorias.dart';
 import '../modelo/mes.dart';
 import '../modelo/presupuesto.dart';
 import 'formulario_presupuesto_pantalla.dart';
+import '../../comun/menu_lateral.dart';
 
 /// HU011: presupuesto mensual con lo gastado y el porcentaje utilizado.
 /// HU025: debajo, el reporte del mes con los gastos por categoria.
@@ -85,6 +86,7 @@ class _PresupuestoPantallaState extends State<PresupuestoPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const BotonMenu(),
         title: const Text('Presupuesto mensual'),
         actions: [
           IconButton(

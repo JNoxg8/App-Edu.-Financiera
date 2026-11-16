@@ -34,17 +34,16 @@ class AporteMetaAhorroServicio {
   }
 
   /// Registra un nuevo aporte en una meta.
-  /// Si no se envía fecha, el backend utiliza la fecha actual.
+  /// La fecha es obligatoria (HU004): el backend responde 400 si falta.
   Future<AporteMetaAhorro> registrar({
     required int metaAhorroId,
     required double monto,
-    DateTime? fecha,
+    required DateTime fecha,
   }) async {
-    final cuerpo = <String, dynamic>{'monto': monto};
-
-    if (fecha != null) {
-      cuerpo['fecha'] = fecha.toIso8601String().split('T').first;
-    }
+    final cuerpo = <String, dynamic>{
+      'monto': monto,
+      'fecha': fecha.toIso8601String().split('T').first,
+    };
 
     final res = await _cliente
         .post(

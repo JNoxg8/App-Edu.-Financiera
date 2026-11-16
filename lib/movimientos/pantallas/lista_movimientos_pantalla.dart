@@ -9,6 +9,7 @@ import '../modelo/movimiento.dart';
 import '../servicio/movimiento_servicio.dart';
 import 'categorias_pantalla.dart';
 import 'formulario_movimiento_pantalla.dart';
+import '../../comun/menu_lateral.dart';
 
 final _formatoFecha = DateFormat('dd/MM/yyyy');
 
@@ -253,11 +254,12 @@ class _ListaMovimientosPantallaState extends State<ListaMovimientosPantalla> {
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar movimiento'),
         content: Text(
-          m.abonoDeuda
-              ? 'Este gasto es un abono a una deuda. Al eliminarlo, el abono '
-                    'también se elimina y el saldo de la deuda vuelve a subir.'
-              : 'Se eliminará el ${m.tipo.nombre.toLowerCase()} de '
-                    '${_formato.format(m.monto)}.',
+          // HU017: la confirmacion muestra tipo, monto y fecha y avisa que es permanente
+          '${m.abonoDeuda ? 'Este gasto es un abono a una deuda. Al eliminarlo, el abono '
+                    'también se elimina y el saldo de la deuda vuelve a subir.\n\n' : ''}'
+          'Se eliminará el ${m.tipo.nombre.toLowerCase()} de '
+          '${_formato.format(m.monto)} del ${_formatoFecha.format(m.fecha)}.\n\n'
+          'Esta acción es permanente y no se puede deshacer.',
         ),
         actions: [
           TextButton(
@@ -299,6 +301,7 @@ class _ListaMovimientosPantallaState extends State<ListaMovimientosPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const BotonMenu(),
         title: const Text('Mis movimientos'),
         actions: [
           IconButton(

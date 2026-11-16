@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../comun/api_exception.dart';
+import '../../comun/cambios_financieros.dart';
 import '../modelo/meta_ahorro.dart';
 import '../servicio/meta_ahorro_servicio.dart';
 
@@ -98,6 +99,7 @@ class _FormularioMetaAhorroPantallaState
         fechaLimite: _fechaLimite!,
         montoInicial: inicial,
       );
+      CambiosFinancieros.notificar();
       if (!mounted) return;
       setState(() {
         _creada = meta;

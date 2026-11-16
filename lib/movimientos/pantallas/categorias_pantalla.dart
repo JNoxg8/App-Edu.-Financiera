@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../comun/cambios_financieros.dart';
 import '../modelo/movimiento.dart';
 import '../servicio/movimiento_servicio.dart';
 
@@ -121,7 +122,11 @@ class _CategoriasPantallaState extends State<CategoriasPantalla> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar categoría'),
-        content: Text('Se eliminará la categoría "${c.nombre}".'),
+        // HU019: los movimientos de la categoria pasan a "Otros"
+        content: Text(
+          'Se eliminará la categoría "${c.nombre}".\n\n'
+          'Los movimientos que tenga asociados pasarán a la categoría "Otros".',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -141,8 +146,10 @@ class _CategoriasPantallaState extends State<CategoriasPantalla> {
       await _servicio.eliminarCategoria(c.id);
       _mostrarMensaje('Categoría eliminada');
       _recargar();
+      // Sus movimientos cambiaron de categoria: la lista y el reporte se recargan
+      CambiosFinancieros.notificar();
     } on ApiException catch (e) {
-      // 409 si tiene movimientos asociados
+      // 409 si es predefinida
       _mostrarMensaje(e.mensaje, error: true);
     } catch (_) {
       _mostrarMensaje('No se pudo eliminar la categoría', error: true);

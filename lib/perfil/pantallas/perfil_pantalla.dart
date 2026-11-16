@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../modelo/perfil.dart';
+import '../../comun/menu_lateral.dart';
 
 /// Pestana "Perfil": muestra los datos registrados en HU001.
 /// La HU solo contempla crear el perfil, por eso aqui no se edita.
@@ -17,7 +18,10 @@ class PerfilPantalla extends StatelessWidget {
         perfil.nombre.isNotEmpty ? perfil.nombre[0].toUpperCase() : '?';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mi perfil')),
+      appBar: AppBar(
+        leading: const BotonMenu(),
+        title: const Text('Mi perfil'),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

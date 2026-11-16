@@ -6,6 +6,7 @@ import '../modelo/meta_ahorro.dart';
 import '../servicio/meta_ahorro_servicio.dart';
 import 'formulario_meta_ahorro_pantalla.dart';
 import 'detalle_meta_ahorro_pantalla.dart';
+import '../../comun/menu_lateral.dart';
 
 class ListaMetasAhorroPantalla extends StatefulWidget {
   final MetaAhorroServicio? servicio;
@@ -213,6 +214,7 @@ class _ListaMetasAhorroPantallaState extends State<ListaMetasAhorroPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const BotonMenu(),
         title: const Text('Mis metas de ahorro'),
         actions: [
           IconButton(

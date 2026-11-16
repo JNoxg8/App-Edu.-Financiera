@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../comun/api_exception.dart';
+import '../../comun/cambios_financieros.dart';
 import '../modelo/meta_ahorro.dart';
 import '../modelo/aporte_meta_ahorro.dart';
 import '../servicio/aporte_meta_ahorro_servicio.dart';
@@ -188,8 +189,16 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
       return;
     }
 
+    // HU004: si pasa la fecha limite sin alcanzar el objetivo, la meta queda vencida
+    if (meta.estado == 'VENCIDA') {
+      _mostrarMensaje('Esta meta está vencida: ya pasó su fecha límite.');
+      return;
+    }
+
     final controlador = TextEditingController();
-    DateTime? fechaSeleccionada;
+    // HU004: la fecha del aporte no puede quedar vacia; se propone la de hoy
+    final ahora = DateTime.now();
+    DateTime fechaSeleccionada = DateTime(ahora.year, ahora.month, ahora.day);
 
     final confirmar = await showDialog<bool>(
       context: context,
@@ -220,7 +229,7 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
                     onPressed: () async {
                       final fecha = await showDatePicker(
                         context: dialogContext,
-                        initialDate: DateTime.now(),
+                        initialDate: fechaSeleccionada,
                         firstDate: DateTime(2000),
                         lastDate: DateTime.now(),
                         helpText: 'Fecha del aporte',
@@ -234,15 +243,8 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
                     },
                     icon: const Icon(Icons.calendar_today),
                     label: Text(
-                      fechaSeleccionada == null
-                          ? 'Fecha: hoy'
-                          : DateFormat('dd/MM/yyyy').format(fechaSeleccionada!),
+                      'Fecha: ${DateFormat('dd/MM/yyyy').format(fechaSeleccionada)}',
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Si no seleccionas una fecha, se utilizará la fecha actual.',
-                    style: TextStyle(fontSize: 12),
                   ),
                 ],
               ),
@@ -297,6 +299,8 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
         monto: monto,
         fecha: fechaSeleccionada,
       );
+      // HU015: el panel principal se actualiza con cada aporte
+      CambiosFinancieros.notificar();
 
       await _cargarDatos();
 
@@ -346,6 +350,7 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
         metaAhorroId: widget.meta.id,
         aporteId: aporte.id,
       );
+      CambiosFinancieros.notificar();
 
       await _cargarDatos();
 
@@ -397,6 +402,8 @@ class _DetalleMetaAhorroPantallaState extends State<DetalleMetaAhorroPantalla> {
 
     try {
       await _metaServicio.eliminar(meta.id);
+      // HU021: el panel principal se actualiza al eliminar la meta
+      CambiosFinancieros.notificar();
 
       if (!mounted) return;
 

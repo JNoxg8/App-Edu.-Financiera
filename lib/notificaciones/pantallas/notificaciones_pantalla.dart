@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../comun/api_exception.dart';
 import '../modelo/notificacion.dart';
 import '../servicio/notificacion_servicio.dart';
+import '../../comun/menu_lateral.dart';
 
 class NotificacionesPantalla extends StatefulWidget {
   final NotificacionServicio? servicio;
@@ -156,6 +157,7 @@ class _NotificacionesPantallaState extends State<NotificacionesPantalla> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const BotonMenu(),
         title: const Text('Notificaciones'),
         actions: [
           IconButton(

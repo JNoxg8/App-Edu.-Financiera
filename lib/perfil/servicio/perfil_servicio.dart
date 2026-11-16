@@ -9,7 +9,7 @@ import '../modelo/perfil.dart';
 
 /// Comunicacion con /perfil (HU001).
 class PerfilServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   final http.Client _cliente;
 

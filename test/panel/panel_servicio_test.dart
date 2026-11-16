@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:finanzas_app/config/api_config.dart';
 import 'package:finanzas_app/panel/servicio/panel_servicio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,7 +68,7 @@ void main() {
 
     final panel = await servicio.consultar();
 
-    expect(url.toString(), 'http://10.0.2.2:8862/zenfi/panel');
+    expect(url.toString(), '${ApiConfig.baseUrl}/panel');
     expect(panel.balanceGeneral, -150000.0);
     expect(panel.gastosMesActual, 420000.5);
     expect(panel.metasActivas.single.porcentaje, 25.0);

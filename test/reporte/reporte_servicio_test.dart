@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:finanzas_app/config/api_config.dart';
 import 'package:finanzas_app/reporte/servicio/reporte_servicio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,7 +53,7 @@ void main() {
     await servicio.consultar(DateTime(2026, 10));
 
     expect(urlLlamada.toString(),
-        'http://10.0.2.2:8862/zenfi/reportes/mensual?mes=2026-10');
+        '${ApiConfig.baseUrl}/reportes/mensual?mes=2026-10');
   });
 
   test('con presupuesto convierte la comparacion y el desglose', () async {

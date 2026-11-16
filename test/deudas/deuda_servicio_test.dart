@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:finanzas_app/config/api_config.dart';
 import 'package:finanzas_app/deudas/servicio/deuda_servicio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,7 +67,7 @@ void main() {
 
     final deudas = await servicio.listar();
 
-    expect(urlLlamada.toString(), 'http://10.0.2.2:8862/zenfi/deudas');
+    expect(urlLlamada.toString(), '${ApiConfig.baseUrl}/deudas');
     expect(deudas, hasLength(1));
     expect(deudas.first.acreedor, 'Banco Demo');
     expect(deudas.first.saldoPendiente, 1000000.0);

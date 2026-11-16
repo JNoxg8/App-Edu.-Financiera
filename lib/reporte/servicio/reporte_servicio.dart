@@ -11,7 +11,7 @@ export '../../comun/api_exception.dart' show ApiException;
 
 /// Unico punto del modulo de reporte que habla HTTP (HU025).
 class ReporteServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   /// El cliente HTTP se puede inyectar para las pruebas (MockClient).
   final http.Client _cliente;

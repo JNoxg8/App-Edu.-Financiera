@@ -5,22 +5,39 @@ Cliente móvil de **Zenfi**, la app de educación financiera. Consume la API en 
 
 ## Conexión con el backend
 
-La URL se arma en `lib/config/api_config.dart` y debe coincidir con `application.yml` del backend:
+La URL se arma en `lib/config/api_config.dart`. **Por defecto la app usa el backend
+desplegado en Render:**
 
-| Dónde corre la app | URL base |
-|---|---|
-| Emulador de Android | `http://10.0.2.2:8862/zenfi` |
-| Chrome (Flutter Web) | `http://localhost:8862/zenfi` |
-| Celular físico | `http://<IP del PC>:8862/zenfi` (ver comentarios en `api_config.dart`) |
+`https://app-edu-financiera.onrender.com/zenfi`
 
-Como el backend de desarrollo usa `http://`, Android solo permite ese tráfico hacia los
-hosts listados en `android/app/src/main/res/xml/network_security_config.xml`.
+Para trabajar con el backend local se compila con `--dart-define=BACKEND=local`
+(en Android Studio: *Run > Edit Configurations > Additional run args*):
+
+```shell
+flutter run -d chrome --dart-define=BACKEND=local
+```
+
+| Backend | Dónde corre la app | URL base |
+|---|---|---|
+| Render (por defecto) | Cualquiera | `https://app-edu-financiera.onrender.com/zenfi` |
+| Local | Emulador de Android | `http://10.0.2.2:8862/zenfi` |
+| Local | Chrome (Flutter Web) | `http://localhost:8862/zenfi` |
+| Local | Celular físico | `http://<IP del PC>:8862/zenfi` (ver comentarios en `api_config.dart`) |
+
+En el plan gratuito de Render el servidor se apaga tras unos minutos sin uso: la primera
+petición lo vuelve a encender y puede tardar cerca de un minuto. Por eso, contra Render la
+app espera hasta 75 segundos por respuesta y, al arrancar, avisa que el servidor se está
+activando.
+
+Como el backend local usa `http://`, Android solo permite ese tráfico hacia los hosts
+listados en `android/app/src/main/res/xml/network_security_config.xml`. Render usa
+`https://`, así que no necesita esa excepción.
 
 ## Ejecución
 
-1. Levante el backend (`quarkus:dev`).
-2. Encienda el emulador o elija Chrome como dispositivo.
-3. `flutter pub get` y luego **Run** (o `flutter run`).
+- **Contra Render:** `flutter pub get` y luego **Run** (o `flutter run -d chrome`).
+- **Contra el backend local:** levante el backend (`.\mvnw.cmd quarkus:dev`) y ejecute con
+  `--dart-define=BACKEND=local`.
 
 ## Pruebas
 

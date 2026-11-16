@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../config/api_config.dart';
 import '../perfil/modelo/perfil.dart';
 import '../perfil/pantallas/crear_perfil_pantalla.dart';
 import '../perfil/servicio/perfil_servicio.dart';
@@ -27,16 +30,32 @@ class _ArranquePantallaState extends State<ArranquePantalla> {
   bool _error = false;
   Perfil? _perfil;
 
+  /// true si la primera respuesta tarda: el servidor de Render se esta
+  /// encendiendo (plan gratuito) y conviene explicarlo.
+  bool _lento = false;
+  Timer? _temporizador;
+
   @override
   void initState() {
     super.initState();
     _cargar();
   }
 
+  @override
+  void dispose() {
+    _temporizador?.cancel();
+    super.dispose();
+  }
+
   Future<void> _cargar() async {
     setState(() {
       _cargando = true;
       _error = false;
+      _lento = false;
+    });
+    _temporizador?.cancel();
+    _temporizador = Timer(const Duration(seconds: 5), () {
+      if (mounted && _cargando) setState(() => _lento = true);
     });
     try {
       final perfil = await _servicio.obtener();
@@ -51,13 +70,35 @@ class _ArranquePantallaState extends State<ArranquePantalla> {
         _error = true;
         _cargando = false;
       });
+    } finally {
+      _temporizador?.cancel();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_cargando) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 20),
+                Text(
+                  _lento && ApiConfig.usaRender
+                      ? 'Activando el servidor...\nLa primera conexión después de '
+                          'un rato sin uso puede tardar hasta un minuto.'
+                      : 'Conectando con el servidor...',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     if (_error) {

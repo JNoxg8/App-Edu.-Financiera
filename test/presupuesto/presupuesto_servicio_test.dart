@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:finanzas_app/config/api_config.dart';
 import 'package:finanzas_app/presupuesto/modelo/mes.dart';
 import 'package:finanzas_app/presupuesto/modelo/presupuesto.dart';
 import 'package:finanzas_app/presupuesto/servicio/presupuesto_servicio.dart';
@@ -83,7 +84,7 @@ void main() {
       final presupuesto = await servicio.consultar(DateTime(2026, 10));
 
       expect(urlLlamada.toString(),
-          'http://10.0.2.2:8862/zenfi/presupuestos?mes=2026-10');
+          '${ApiConfig.baseUrl}/presupuestos?mes=2026-10');
       expect(presupuesto, isNotNull);
       expect(presupuesto!.porcentajeUtilizado, 75.0);
       expect(presupuesto.disponible, 250000.0);

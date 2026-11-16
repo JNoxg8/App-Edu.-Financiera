@@ -7,7 +7,7 @@ import '../../config/api_config.dart';
 import '../modelo/recordatorio_meta.dart';
 
 class RecordatorioMetaServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   final http.Client _cliente;
 

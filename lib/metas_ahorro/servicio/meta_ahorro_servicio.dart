@@ -8,7 +8,7 @@ import '../modelo/meta_ahorro.dart';
 
 /// Cliente HTTP para la HU003. Las pantallas no llaman HTTP directamente.
 class MetaAhorroServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   final http.Client _cliente;
 

@@ -8,7 +8,7 @@ import '../modelo/aporte_meta_ahorro.dart';
 
 /// Cliente HTTP para gestionar los aportes de las metas de ahorro.
 class AporteMetaAhorroServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   final http.Client _cliente;
 

@@ -12,7 +12,7 @@ export '../../comun/api_exception.dart' show ApiException;
 /// Unico punto del modulo de presupuesto que habla HTTP (HU011).
 /// Las pantallas nunca llaman a http directamente: solo usan este servicio.
 class PresupuestoServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   /// El cliente HTTP se puede inyectar para las pruebas (MockClient).
   final http.Client _cliente;

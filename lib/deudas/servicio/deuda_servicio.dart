@@ -13,7 +13,7 @@ export '../../comun/api_exception.dart' show ApiException;
 /// Las pantallas nunca llaman a http directamente: solo usan este servicio.
 /// Es el mismo principio del repositorio en el backend.
 class DeudaServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   /// El cliente HTTP se puede inyectar para las pruebas (MockClient).
   /// En la app se usa el cliente real.

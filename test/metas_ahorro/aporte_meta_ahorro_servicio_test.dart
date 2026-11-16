@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:finanzas_app/config/api_config.dart';
 import 'package:finanzas_app/comun/api_exception.dart';
 import 'package:finanzas_app/metas_ahorro/servicio/aporte_meta_ahorro_servicio.dart';
 import 'package:flutter/foundation.dart';
@@ -40,7 +41,7 @@ void main() {
       fecha: DateTime(2026, 11, 2),
     );
 
-    expect(url.toString(), 'http://10.0.2.2:8862/zenfi/metas-ahorro/3/aportes');
+    expect(url.toString(), '${ApiConfig.baseUrl}/metas-ahorro/3/aportes');
     expect(cuerpo, {'monto': 150000, 'fecha': '2026-11-02'});
     expect(aporte.id, 7);
   });

@@ -13,7 +13,7 @@ export '../../comun/api_exception.dart' show ApiException;
 /// Comunicacion con /movimientos y /categorias (HU009).
 /// Las pantallas nunca llaman a http directamente.
 class MovimientoServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   /// Se puede inyectar para las pruebas (MockClient).
   final http.Client _cliente;

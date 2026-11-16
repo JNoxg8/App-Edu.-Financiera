@@ -10,7 +10,7 @@ export '../../comun/api_exception.dart' show ApiException;
 
 /// Unico punto del panel principal que habla HTTP (HU015).
 class PanelServicio {
-  static const Duration _timeout = Duration(seconds: 10);
+  static Duration get _timeout => ApiConfig.timeout;
 
   /// El cliente HTTP se puede inyectar para las pruebas (MockClient).
   final http.Client _cliente;

@@ -36,6 +36,7 @@ if (-not $SoloWeb) {
     Write-Host "Compilando el APK..."
     flutter build apk --release --split-per-abi
     if ($LASTEXITCODE -ne 0) { throw "Fallo la compilacion del APK" }
-    Copy-Item build\app\outputs\flutter-apk\app-release.apk (Join-Path $destino "zenfi.apk")
+    # El de arm64 sirve para casi todos los celulares actuales y pesa ~19 MB
+    Copy-Item build\app\outputs\flutter-apk\app-arm64-v8a-release.apk (Join-Path $destino "zenfi.apk")
     Write-Host "APK copiado: se descarga en https://app-edu-financiera.onrender.com/zenfi/zenfi.apk"
 }

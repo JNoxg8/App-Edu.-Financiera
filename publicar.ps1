@@ -34,7 +34,7 @@ Write-Host "Version web copiada a $destino"
 
 if (-not $SoloWeb) {
     Write-Host "Compilando el APK..."
-    flutter build apk --release
+    flutter build apk --release --split-per-abi
     if ($LASTEXITCODE -ne 0) { throw "Fallo la compilacion del APK" }
     Copy-Item build\app\outputs\flutter-apk\app-release.apk (Join-Path $destino "zenfi.apk")
     Write-Host "APK copiado: se descarga en https://app-edu-financiera.onrender.com/zenfi/zenfi.apk"

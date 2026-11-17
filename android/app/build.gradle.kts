@@ -7,7 +7,8 @@ plugins {
 android {
     namespace = "edu.ucentral.finanzas_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // NDK instalado en el equipo (Flutter pide 28.2; el 29 es compatible)
+    ndkVersion = "29.0.14206865"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

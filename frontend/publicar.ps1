@@ -10,7 +10,8 @@
 # No se copia la carpeta canvaskit (37 MB): la app la descarga del CDN de Google.
 
 param(
-    [string]$Backend = "$PSScriptRoot\..\..\App-Edu.-Financiera",
+    # El frontend vive en la carpeta frontend/ del repositorio del backend
+    [string]$Backend = "$PSScriptRoot\..",
     [switch]$SoloWeb
 )
 

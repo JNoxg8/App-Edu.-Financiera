@@ -4,6 +4,29 @@ Backend en **Quarkus** de la app de educación financiera **Zenfi** (cliente en 
 La configuración sigue la plantilla `gestortecno` entregada por el profesor, y los
 módulos siguen la arquitectura hexagonal del repositorio guía `quarkusgestiondocente`.
 
+## Estructura del repositorio
+
+| Carpeta | Contenido |
+|---|---|
+| `src/` | Backend en Quarkus (API REST) |
+| `frontend/` | App en Flutter (Android y web). Ver `frontend/README.md` |
+| `src/main/resources/META-INF/resources/` | Versión web compilada de la app y el APK, que el backend publica |
+
+## Aplicación desplegada (Render)
+
+| Medio | Enlace |
+|---|---|
+| Navegador | https://app-edu-financiera.onrender.com/zenfi/ |
+| APK para Android | https://app-edu-financiera.onrender.com/zenfi/zenfi.apk |
+| API (Swagger) | https://app-edu-financiera.onrender.com/zenfi/q/swagger-ui |
+
+Render vuelve a desplegar cada vez que se actualiza la rama `develop`. Para publicar una
+versión nueva de la app, desde `frontend/` ejecute `.\publicar.ps1` (compila la web y el APK y
+los copia al backend) y luego haga commit y push a `develop`.
+
+Cada usuario crea su cuenta (`POST /auth/registro`) y la API le exige el token de su sesión
+(`Authorization: Bearer <token>`); en Swagger se ingresa con el botón **Authorize**.
+
 ## Requisitos
 
 - JDK **25** (Eclipse Temurin)

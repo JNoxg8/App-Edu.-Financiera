@@ -1,7 +1,7 @@
 # Zenfi - App Flutter
 
-Cliente móvil de **Zenfi**, la app de educación financiera. Consume la API en Quarkus
-(`App-Edu.-Financiera`, backend en `edu.ucentral.zenfi`).
+Cliente de **Zenfi**, la app de educación financiera, para Android y web. Consume la API en
+Quarkus que está en la raíz de este mismo repositorio (`src/`, paquete `edu.ucentral.zenfi`).
 
 ## Conexión con el backend
 
@@ -47,16 +47,45 @@ flutter test
 
 Las pruebas del servicio usan `MockClient`, así que no necesitan el backend encendido.
 
+## Publicar una versión nueva
+
+Desde esta carpeta (`frontend/`):
+
+```powershell
+.\publicar.ps1            # versión web + APK
+.\publicar.ps1 -SoloWeb   # solo la versión web
+```
+
+El script compila la app y copia el resultado a `src/main/resources/META-INF/resources/` del
+backend. Después haga commit y push a `develop`: Render vuelve a desplegar y la app queda en
+https://app-edu-financiera.onrender.com/zenfi/ (el APK en `/zenfi/zenfi.apk`).
+
+## Ícono
+
+El ícono (anillo de progreso con una Z, en los colores de la app) se dibuja con
+`tool/generar_icono.py` (Python + Pillow) y `flutter_launcher_icons` lo convierte a todos los
+tamaños de Android y web. Para regenerarlo:
+
+```shell
+python tool/generar_icono.py assets/icono
+dart run flutter_launcher_icons
+```
+
 ## Estructura
 
 ```
 lib/
-├── config/api_config.dart     URL del backend
 ├── main.dart
-└── deudas/                    Un paquete por módulo, igual que el backend
-    ├── modelo/                Clases que reflejan los DTO de la API
-    ├── servicio/              Único punto que habla HTTP
-    └── pantallas/             Widgets
+├── config/api_config.dart     URL del backend (Render o local)
+├── comun/                     Tema, cliente HTTP con el token, sesión, gráficos, menú lateral
+├── inicio/                    Arranque (pantalla de acceso o inicio) y menú principal
+├── autenticacion/             Registro e inicio de sesión
+├── panel/                     Resumen de la pantalla de inicio
+├── movimientos/  presupuesto/  deudas/  metas_ahorro/
+├── notificaciones/  reporte/  perfil/
+│   ├── modelo/                Clases que reflejan los DTO de la API
+│   ├── servicio/              Único punto que habla HTTP
+│   └── pantallas/             Widgets
 ```
 
 Application ID: `edu.ucentral.finanzas_app`.

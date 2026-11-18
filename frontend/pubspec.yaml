@@ -48,6 +48,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -90,3 +91,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Icono de la app (Android y web). Para regenerarlo: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icono/zenfi_icono.png"
+  android: true
+  ios: false
+  min_sdk_android: 21
+  # Icono adaptativo (Android 8+): fondo de color y la figura encima
+  adaptive_icon_background: "#1B365D"
+  adaptive_icon_foreground: "assets/icono/zenfi_primer_plano.png"
+  web:
+    generate: true
+    image_path: "assets/icono/zenfi_icono.png"
+    background_color: "#1B365D"
+    theme_color: "#1B365D"

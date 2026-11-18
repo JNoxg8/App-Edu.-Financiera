@@ -34,4 +34,10 @@ public class SesionPanache implements SesionRepositorio, PanacheRepository<Sesio
     public void eliminar(String hashToken) {
         delete("hashToken", hashToken);
     }
+
+    @Override
+    @Transactional
+    public long eliminarVencidas(LocalDateTime ahora) {
+        return delete("expira <= ?1", ahora);
+    }
 }

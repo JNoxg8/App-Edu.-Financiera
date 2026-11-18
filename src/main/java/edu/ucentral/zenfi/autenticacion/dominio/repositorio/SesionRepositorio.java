@@ -16,4 +16,7 @@ public interface SesionRepositorio {
     Optional<Long> cuentaDeSesionVigente(String hashToken, LocalDateTime ahora);
 
     void eliminar(String hashToken);
+
+    /** Borra las sesiones que vencieron antes de {@code ahora}; devuelve cuantas. */
+    long eliminarVencidas(LocalDateTime ahora);
 }

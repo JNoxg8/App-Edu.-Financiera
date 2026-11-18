@@ -91,6 +91,15 @@ public class AutenticacionServicio {
         return sesiones.cuentaDeSesionVigente(hash(token), LocalDateTime.now());
     }
 
+    /**
+     * Borra las sesiones vencidas: ya no sirven para entrar, pero sin esta
+     * limpieza la tabla crece sin limite. Una sola sentencia DELETE.
+     */
+    @Transactional
+    public long limpiarSesionesVencidas() {
+        return sesiones.eliminarVencidas(LocalDateTime.now());
+    }
+
     public Cuenta cuenta(Long usuarioId) {
         return cuentas.buscarPorId(usuarioId)
                 .orElseThrow(() -> new NoAutenticadoException("La cuenta ya no existe"));

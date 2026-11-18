@@ -2,7 +2,7 @@
 #  Zenfi API - configuracion
 #  Estructura basada en la plantilla gestortecno del profesor.
 #  Las credenciales NO van aqui: se leen del archivo .env
-#  (ver .env.example en la raiz del proyecto).
+#  (ver la seccion "Configuracion local" del README).
 # ============================================================
 
 quarkus:
@@ -39,10 +39,12 @@ quarkus:
   # ---------------- Hibernate ----------------
   hibernate-orm:
     schema-management:
-      # drop-and-create (plantilla del profesor): borra y recrea las tablas
-      # en cada arranque. Para conservar los datos entre reinicios, poner
-      # DB_ESQUEMA=update en el archivo .env.
-      strategy: ${DB_ESQUEMA:drop-and-create}
+      # update: crea las tablas y columnas que falten SIN borrar datos.
+      # Es el valor por defecto a proposito: si un .env local apuntara por
+      # error a la base de Render, drop-and-create borraria los datos reales.
+      # Para empezar con la base vacia en local: DB_ESQUEMA=drop-and-create.
+      # (Las pruebas, perfil %test, siempre usan drop-and-create sobre H2.)
+      strategy: ${DB_ESQUEMA:update}
     log:
       sql: true
       format-sql: true
